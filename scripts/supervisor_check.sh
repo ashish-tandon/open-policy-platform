@@ -52,9 +52,17 @@ if [[ -f "$ROOT_DIR/backend/pytest.ini" ]]; then
     ok_backend=false
     notes+=("python_deps_missing:fastapi")
   else
-    if ! pytest -q tests/infrastructure -k health --maxfail=1 --disable-warnings; then
+    if ! command -v pytest >/dev/null 2>&1; then
+      python3 -m pip install --user --break-system-packages pytest >/dev/null 2>&1 || true
+    fi
+    if command -v pytest >/dev/null 2>&1; then
+      if ! pytest -q tests/infrastructure -k health --maxfail=1 --disable-warnings; then
+        ok_backend=false
+        notes+=("backend_smoke_failed")
+      fi
+    else
       ok_backend=false
-      notes+=("backend_smoke_failed")
+      notes+=("pytest_missing")
     fi
   fi
   popd >/dev/null
@@ -78,14 +86,14 @@ popd >/dev/null
 # Write JSON report
 {
   echo "{"
-  echo "  \"timestamp\": \"$TS\","
-  echo "  \"interval\": \"$INTERVAL\","
+  echo "  \"timestamp\": \"$TS\"," 
+  echo "  \"interval\": \"$INTERVAL\"," 
   echo "  \"architecture\": {\"ok\": $ok_arch},"
   echo "  \"ownership\": {\"ok\": $ok_owner, \"violations\": ["
   if [[ ${#violations[@]} -gt 0 ]]; then
     for i in "${!violations[@]}"; do
-      printf '    %s"%s"%s\n' '"' "${violations[$i]//"/\"}" '"' \
-        | sed 's/$/,/'
+      v=$(printf '%s' "${violations[$i]}" | sed 's/"/\"/g')
+      printf '    "%s"\n' "$v" | sed 's/$/,/'
     done | sed '$ s/,$//'
   fi
   echo "  ]},"
@@ -93,8 +101,8 @@ popd >/dev/null
   echo "  \"frontend_types\": {\"ok\": $ok_frontend},"
   echo "  \"notes\": ["
   for i in "${!notes[@]}"; do
-    printf '    %s"%s"%s\n' '"' "${notes[$i]}" '"' \
-      | sed 's/$/,/'
+    n=$(printf '%s' "${notes[$i]}" | sed 's/"/\"/g')
+    printf '    "%s"\n' "$n" | sed 's/$/,/'
   done | sed '$ s/,$//'
   echo "  ]"
   echo "}"
