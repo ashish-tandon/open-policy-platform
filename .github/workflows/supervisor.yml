@@ -2,7 +2,7 @@ name: Supervisor Checks
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/5 * * * *'
   push:
     branches: [ main ]
   pull_request:
@@ -28,7 +28,7 @@ jobs:
       - name: Run supervisor checks
         run: |
           chmod +x scripts/supervisor_check.sh
-          ./scripts/supervisor_check.sh --interval 30 || true
+          ./scripts/supervisor_check.sh --interval 5 || true
       - name: Upload supervision reports
         uses: actions/upload-artifact@v4
         with:
