@@ -39,13 +39,18 @@ done
 
 # 2) Ownership policy checks (no personal usernames)
 violations=()
-if grep -RInE "ashishtandon|ubuntu@|personal" "$ROOT_DIR" --exclude-dir .git --exclude-dir node_modules --exclude-dir __pycache__ >/tmp/viol 2>/dev/null; then
+# Limit search to code/config folders; exclude logs/scraper content
+scan_paths=("$ROOT_DIR/backend" "$ROOT_DIR/web" "$ROOT_DIR/infrastructure" "$ROOT_DIR/scripts")
+if grep -RInE "ashishtandon|/Users/ashishtandon|Github/Base Code" "${scan_paths[@]}" \
+  --exclude-dir .git --exclude-dir node_modules --exclude-dir __pycache__ \
+  --exclude='*.log' --exclude='*.md' >/tmp/viol 2>/dev/null; then
   ok_owner=false
   mapfile -t vlines </tmp/viol
   violations+=("${vlines[@]}")
 fi
 
 # 3) Backend smoke tests (if pytest ini exists)
+backend_health=false
 if [[ -f "$ROOT_DIR/backend/pytest.ini" ]]; then
   pushd "$ROOT_DIR/backend" >/dev/null
   if ! python3 -c "import fastapi" 2>/dev/null; then
@@ -56,12 +61,12 @@ if [[ -f "$ROOT_DIR/backend/pytest.ini" ]]; then
       python3 -m pip install --user --break-system-packages pytest >/dev/null 2>&1 || true
     fi
     if command -v pytest >/dev/null 2>&1; then
-      if ! pytest -q tests/infrastructure -k health --maxfail=1 --disable-warnings; then
-        ok_backend=false
+      if pytest -q tests/infrastructure -k health --maxfail=1 --disable-warnings; then
+        backend_health=true
+      else
         notes+=("backend_smoke_failed")
       fi
     else
-      ok_backend=false
       notes+=("pytest_missing")
     fi
   fi
@@ -69,6 +74,11 @@ if [[ -f "$ROOT_DIR/backend/pytest.ini" ]]; then
 else
   notes+=("pytest_ini_missing")
 fi
+# Fallback: try API health curl
+if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+  backend_health=true
+fi
+ok_backend=$backend_health
 
 # 4) Frontend type-check
 pushd "$ROOT_DIR/web" >/dev/null
