@@ -10,6 +10,9 @@ import json
 import os
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from ..config import settings
+from ..dependencies import get_db
+from ...config.database import db_config
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 
@@ -63,8 +66,9 @@ async def get_dashboard_overview():
         
         # Database status
         import subprocess
+        db_user = db_config.username
         db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_user, "-d", db_config.database,
             "-c", "SELECT 1;",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -84,7 +88,7 @@ async def get_dashboard_overview():
         total_records = 0
         if database_status == "healthy":
             count_result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                "psql", "-h", db_config.host, "-U", db_user, "-d", db_config.database,
                 "-c", "SELECT COUNT(*) FROM core_politician;",
                 "-t", "-A"
             ], capture_output=True, text=True, timeout=10)

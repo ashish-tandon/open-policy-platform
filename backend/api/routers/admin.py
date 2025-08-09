@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from ..dependencies import get_db, require_admin
 from ..config import settings
+from ...config.database import db_config
 
 router = APIRouter()
 
@@ -47,7 +48,7 @@ async def get_dashboard_stats(
         db_stats = {}
         try:
             result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
                 "-c", "SELECT COUNT(*) FROM core_politician;",
                 "-t", "-A"
             ], capture_output=True, text=True, timeout=10)

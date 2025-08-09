@@ -16,7 +16,7 @@ class DatabaseConfig(BaseSettings):
     host: str = "localhost"
     port: int = 5432
     database: str = "openpolicy"
-    username: str = os.getenv("DB_USERNAME", "ashishtandon")
+    username: str = os.getenv("DB_USERNAME", "openpolicy")
     password: str = os.getenv("DB_PASSWORD", "")
     
     # Connection pool settings
