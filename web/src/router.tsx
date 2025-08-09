@@ -11,7 +11,7 @@ import Bills from './pages/public/bills';
 import About from './pages/public/about';
 import MPProfile from './pages/public/mps/[id]';
 import FormerMps from './pages/public/mps/former-mp';
-import DebateSearch from './pages/public/other/debates';
+import DebateSearch from './pages/public/other/debtaes';
 import BillSearch from './pages/public/other/bills';
 import VotePage from './pages/public/vote';
 

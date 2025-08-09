@@ -9,7 +9,10 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   config.headers['policy-connect-key'] = '';
-  
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
   return config;
 });
 

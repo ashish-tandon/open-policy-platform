@@ -36,18 +36,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     // Check for existing token on app load
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      // TODO: Validate token with backend
-      // For now, set a mock user
-      setUser({
-        id: 1,
-        username: 'admin',
-        email: 'admin@openpolicy.com',
-        role: 'admin'
-      });
-    }
-    setIsLoading(false);
+    const validateToken = async () => {
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/v1/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUser({
+            id: data.id,
+            username: data.username,
+            email: data.email,
+            role: data.role,
+          });
+        } else {
+          localStorage.removeItem('auth_token');
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Token validation failed:', err);
+        localStorage.removeItem('auth_token');
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    validateToken();
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -69,7 +92,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.ok) {
         const data = await response.json();
         localStorage.setItem('auth_token', data.access_token);
-        setUser(data.user);
+        setUser({
+          id: data.user.id,
+          username: data.user.username,
+          email: data.user.email,
+          role: data.user.role,
+        });
         return true;
       } else {
         return false;
