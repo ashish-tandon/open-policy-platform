@@ -100,7 +100,7 @@ function Debates() {
               options={days}
               placeholder="Pick a Date"
               width="w-full md:w-[150px]"
-              onChange={(value) => {
+              onChange={(value: string) => {
                 setSelectedDay(value);
                 loadMentionData();
               }}
@@ -109,7 +109,7 @@ function Debates() {
               options={years}
               placeholder="Select Year"
               width="w-full md:w-[120px]"
-              onChange={(value) => {
+              onChange={(value: string) => {
                 setSelectedYear(value);
                 loadDays(value);
               }}
