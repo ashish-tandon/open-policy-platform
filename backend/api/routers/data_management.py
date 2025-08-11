@@ -11,6 +11,7 @@ import csv
 import io
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from ...config.database import db_config
 
 router = APIRouter(prefix="/api/v1/data", tags=["data-management"])
 
@@ -37,7 +38,7 @@ async def get_table_info():
     """Get information about all tables in the database"""
     try:
         result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", """
             SELECT 
                 schemaname,

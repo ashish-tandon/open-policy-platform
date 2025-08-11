@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from ..dependencies import get_db
 from ..config import settings
+from ...config.database import db_config
 
 router = APIRouter()
 
@@ -80,7 +81,7 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         db_status = "healthy"
         try:
             result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
                 "-c", "SELECT 1;",
                 "-t", "-A"
             ], capture_output=True, text=True, timeout=10)
@@ -136,7 +137,7 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
     try:
         # Test basic connectivity
         connectivity_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT 1;",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -151,8 +152,8 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         
         # Get database size
         size_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT pg_size_pretty(pg_database_size('openpolicy'));",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
+            "-c", f"SELECT pg_size_pretty(pg_database_size('{db_config.database}'));",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
         
@@ -162,7 +163,7 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         
         # Get table count
         table_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -175,7 +176,7 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         politician_count = 0
         try:
             politician_result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
                 "-c", "SELECT COUNT(*) FROM core_politician;",
                 "-t", "-A"
             ], capture_output=True, text=True, timeout=10)
@@ -427,7 +428,7 @@ async def health_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
         politician_count = 0
         try:
             result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
                 "-c", "SELECT COUNT(*) FROM core_politician;",
                 "-t", "-A"
             ], capture_output=True, text=True, timeout=10)
