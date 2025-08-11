@@ -1,11 +1,11 @@
 import { IoSearchOutline } from 'react-icons/io5';
 import GovernmentBillCard, {
   GovernmentBillCardProps,
-} from '../../components/GovernmentBillCard';
-import Select from '../../components/common/Select';
+} from '../../../components/GovernmentBillCard';
+import Select from '../../../components/common/Select';
 import { useEffect, useState } from 'react';
-import api from '../../api/axios';
-import EmptyState from '../../components/common/EmptyState';
+import api from '../../../api/axios';
+import EmptyState from '../../../components/common/EmptyState';
 import { FiInbox } from 'react-icons/fi';
 
 const billOptions = [
@@ -102,13 +102,13 @@ function GovernmentBills() {
               options={billOptions}
               placeholder="All Bills"
               width="w-full md:w-[150px]"
-              onChange={(value) => setSelected(value)}
+              onChange={(value: string) => setSelected(value)}
             />
             <Select
               options={session}
               placeholder="Sessions"
               width="w-full md:w-[120px]"
-              onChange={(value) => setSelectedSession(value)}
+              onChange={(value: string) => setSelectedSession(value)}
             />
           </div>
         </div>

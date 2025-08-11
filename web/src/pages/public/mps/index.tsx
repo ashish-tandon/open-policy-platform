@@ -1,10 +1,10 @@
 import { IoSearchOutline } from 'react-icons/io5';
-import MPCard, { MPCardProps } from '../../components/MPCard';
-import Select from '../../components/common/Select';
+import MPCard, { MPCardProps } from '../../../components/MPCard';
+import Select from '../../../components/common/Select';
 import { useEffect, useState } from 'react';
-import api from '../../api/axios';
+import api from '../../../api/axios';
 import { Link } from 'react-router-dom';
-import EmptyState from '../../components/common/EmptyState';
+import EmptyState from '../../../components/common/EmptyState';
 import { FiInbox } from 'react-icons/fi';
 
 const Mps = () => {

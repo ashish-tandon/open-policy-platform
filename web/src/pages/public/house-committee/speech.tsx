@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import DebateCard from '../../components/DebateCard';
-import api from '../../api/axios';
+import DebateCard from '../../../components/DebateCard';
+import api from '../../../api/axios';
 
 const Speech = () => {
   const [houseMentions, setHouseMentions] = useState<any[]>([]);

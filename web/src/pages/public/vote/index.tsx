@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import api from '../../api/axios';
+import api from '../../../api/axios';
 
 interface VoteResult {
   politician_name: string;

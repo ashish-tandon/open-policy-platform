@@ -1,8 +1,8 @@
 import { useParams } from 'react-router-dom';
-import DebateCard from '../../components/DebateCard';
+import DebateCard from '../../../components/DebateCard';
 import { useEffect, useState } from 'react';
-import api from '../../api/axios';
-import DebateCardSkeleton from '../../components/DebateCardSkeleton';
+import api from '../../../api/axios';
+import DebateCardSkeleton from '../../../components/DebateCardSkeleton';
 
 const Bills = () => {
   const { id } = useParams();

@@ -10,8 +10,9 @@ import json
 import os
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from ...config.database import db_config
 
-router = APIRouter(prefix="/api/v1/scrapers", tags=["scraper-monitoring"])
+router = APIRouter(prefix="/api/v1/scraper-monitoring", tags=["scraper-monitoring"])
 
 # Data models
 class ScraperStatus(BaseModel):
@@ -96,7 +97,7 @@ async def get_data_collection_stats():
         import subprocess
         
         result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT COUNT(*) FROM core_politician;",
             "-t", "-A"
         ], capture_output=True, text=True)
@@ -246,7 +247,7 @@ async def get_database_status():
         
         # Get table record counts
         result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", """
             SELECT 
                 schemaname, 
@@ -279,8 +280,8 @@ async def get_database_status():
         
         # Get database size
         size_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT pg_size_pretty(pg_database_size('openpolicy'));",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
+            "-c", f"SELECT pg_size_pretty(pg_database_size('{db_config.database}'));",
             "-t", "-A"
         ], capture_output=True, text=True)
         

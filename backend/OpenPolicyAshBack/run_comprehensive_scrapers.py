@@ -11,6 +11,7 @@ import os
 import sys
 from datetime import datetime
 import psutil
+from config.database import db_config
 
 def run_scraper_process(category, max_records=500, log_file=None):
     """Run a scraper process for a specific category"""
@@ -40,7 +41,7 @@ def check_database_status():
     """Check current database status"""
     try:
         result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT 'core_politician' as table_name, COUNT(*) as record_count FROM core_politician UNION ALL SELECT 'bills_bill', COUNT(*) FROM bills_bill UNION ALL SELECT 'hansards_statement', COUNT(*) FROM hansards_statement ORDER BY record_count DESC;",
             "-t", "-A"
         ], capture_output=True, text=True)

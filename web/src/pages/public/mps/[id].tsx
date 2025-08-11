@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { FaCircleInfo } from 'react-icons/fa6';
 import { Link, useParams } from 'react-router-dom';
-import api from '../../api/axios';
-import { MPCardProps } from '../../components/MPCard';
+import api from '../../../api/axios';
+import { MPCardProps } from '../../../components/MPCard';
 import parse, { domToReact } from 'html-react-parser';
 
 const MPProfile = () => {

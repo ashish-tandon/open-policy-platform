@@ -1,0 +1,36 @@
+name: Supervisor Checks
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  supervise:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frontend deps
+        run: |
+          cd web
+          npm ci --no-audit --no-fund
+      - name: Install minimal python deps
+        run: |
+          pip install fastapi uvicorn pydantic pydantic-settings pytest
+      - name: Run supervisor checks
+        run: |
+          chmod +x scripts/supervisor_check.sh
+          ./scripts/supervisor_check.sh --interval 5 || true
+      - name: Upload supervision reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: supervision-reports
+          path: reports/supervision/

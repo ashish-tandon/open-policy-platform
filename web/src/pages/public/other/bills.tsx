@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import api from '../../api/axios';
-import DebateCardSkeleton from '../../components/DebateCardSkeleton';
+import api from '../../../api/axios';
+import DebateCardSkeleton from '../../../components/DebateCardSkeleton';
 
 function BillSearch() {
   const location = useLocation();

@@ -24,7 +24,12 @@ const AdminDashboard: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      const response = await fetch('/api/v1/admin/dashboard');
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch('/api/v1/admin/dashboard', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
       if (response.ok) {
         const data = await response.json();
         setStats(data);
