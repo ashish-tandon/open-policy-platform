@@ -115,7 +115,7 @@ async def get_system_status(
     try:
         # Database status
         db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT 1;",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -441,7 +441,7 @@ async def get_system_alerts(
         
         # Database alert
         db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT 1;",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -507,8 +507,8 @@ async def create_backup(backup_request: SystemBackupRequest):
         if backup_request.include_database:
             db_backup_file = f"{backup_name}_database.sql"
             result = subprocess.run([
-                "pg_dump", "-h", "localhost", "-U", "ashishtandon", 
-                "openpolicy", "-f", db_backup_file
+                "pg_dump", "-h", db_config.host, "-U", db_config.username,
+                db_config.database, "-f", db_backup_file
             ], capture_output=True, text=True, timeout=300)
             
             with open(log_file, 'a') as f:

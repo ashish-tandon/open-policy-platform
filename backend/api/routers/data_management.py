@@ -96,7 +96,7 @@ async def get_table_records(
             raise HTTPException(status_code=400, detail="Invalid table name")
         
         result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", f"SELECT * FROM {table_name} LIMIT {limit} OFFSET {offset};",
             "-t", "-A"
         ], capture_output=True, text=True)
@@ -155,7 +155,7 @@ async def analyze_politicians():
     try:
         # Get politician statistics
         result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", """
             SELECT 
                 COUNT(*) as total_politicians,
@@ -195,7 +195,7 @@ async def analyze_bills():
     try:
         # Get bill statistics
         result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", """
             SELECT 
                 COUNT(*) as total_bills,

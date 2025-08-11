@@ -102,7 +102,7 @@ async def get_policies(
         # Get total count
         count_query = "SELECT COUNT(*) FROM bills_bill"
         count_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", count_query,
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
