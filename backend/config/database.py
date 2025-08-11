@@ -33,7 +33,10 @@ class DatabaseConfig(BaseSettings):
         env_prefix = "DB_"
     
     def get_url(self) -> str:
-        """Get database URL"""
+        """Get database URL, preferring DATABASE_URL env var when present"""
+        env_url = os.getenv("DATABASE_URL")
+        if env_url:
+            return env_url
         if self.password:
             return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
         else:
@@ -47,10 +50,21 @@ class DatabaseConfig(BaseSettings):
 # Global database configuration
 db_config = DatabaseConfig()
 
+
 def create_database_engine() -> Engine:
     """Create database engine"""
+    url = db_config.get_url()
+    if url.startswith("sqlite"):
+        # SQLite engine (use StaticPool when in-memory)
+        connect_args = {}
+        pool = None
+        if url.endswith(":memory:"):
+            connect_args = {"check_same_thread": False}
+            return create_engine(url, connect_args=connect_args, poolclass=StaticPool, echo=False)
+        return create_engine(url, connect_args=connect_args, echo=False)
+    # Default: PostgreSQL or others with pooling
     engine = create_engine(
-        db_config.get_url(),
+        url,
         pool_size=db_config.pool_size,
         max_overflow=db_config.max_overflow,
         pool_timeout=db_config.pool_timeout,
@@ -59,10 +73,12 @@ def create_database_engine() -> Engine:
     )
     return engine
 
+
 def get_session_factory():
     """Get session factory"""
     engine = create_database_engine()
     return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 def get_database_session() -> Session:
     """Get database session"""

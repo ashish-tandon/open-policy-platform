@@ -47,16 +47,13 @@ check_prerequisites() {
         exit 1
     fi
     
-    # Check PostgreSQL
+    # PostgreSQL is optional for tests (SQLite fallback)
     if ! command -v psql &> /dev/null; then
-        print_error "PostgreSQL is not installed"
-        exit 1
-    fi
-    
-    # Check if PostgreSQL is running
-    if ! pg_isready -q; then
-        print_error "PostgreSQL is not running"
-        exit 1
+        print_warning "PostgreSQL client not found; tests will use SQLite"
+    else
+        if ! pg_isready -q; then
+            print_warning "PostgreSQL is not running; tests will use SQLite"
+        fi
     fi
     
     print_success "Prerequisites check completed"
