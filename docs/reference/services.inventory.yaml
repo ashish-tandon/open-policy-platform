@@ -57,13 +57,6 @@ services:
     port: 9006
     contracts: [healthz, readyz, metrics]
 
-  - name: scraper-service
-    path: services/scraper-service
-    kind: worker+http
-    db: openpolicy_scrapers
-    port: 9008
-    contracts: [healthz, readyz, metrics, openapi]
-
   - name: etl
     path: services/etl
     kind: worker+http
@@ -71,8 +64,33 @@ services:
     port: 9007
     contracts: [healthz, readyz, metrics, alembic]
 
+  - name: scraper-service
+    path: services/scraper-service
+    kind: worker+http
+    db: openpolicy_scrapers
+    port: 9008
+    contracts: [healthz, readyz, metrics, openapi]
+
   - name: legacy-django
     path: services/legacy-django
     kind: http
     port: 9010
     contracts: [healthz, readyz, metrics]
+
+  - name: plotly-service
+    path: services/plotly-service
+    kind: http
+    port: 9012
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: mcp-service
+    path: services/mcp-service
+    kind: http
+    port: 9013
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: op-import-service
+    path: services/op-import-service
+    kind: http
+    port: 9014
+    contracts: [healthz, readyz, metrics, openapi]
