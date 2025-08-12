@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'openpolicy-api'
+    static_configs:
+      - targets: ['openpolicy-platform:8000']
+
+  # Uncomment if you expose nginx ingress metrics
+  # - job_name: 'nginx-ingress'
+  #   static_configs:
+  #     - targets: ['nginx-ingress-controller:10254']

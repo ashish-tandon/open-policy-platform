@@ -1,10 +1,9 @@
 # Versions Matrix
 
-| Component | Minimum | Tested | Notes |
-|---|---|---|---|
-| Python | 3.8 | 3.11 | Use venv |
-| FastAPI | 0.104 | latest | With Pydantic v2 |
-| Pydantic | 2.5 | latest |  |
-| SQLAlchemy | 2.0 | latest |  |
-| PostgreSQL | 14 | 14+ |  |
-| Node.js | 18 | 18+ |  |
+- Python: 3.11
+- Node: 18.x
+- FastAPI: 0.111.x
+- SQLAlchemy: 2.0.x
+- Uvicorn: 0.30.x
+- Postgres: 14–15
+- Kubernetes: 1.27+
