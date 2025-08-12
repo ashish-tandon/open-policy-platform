@@ -68,3 +68,8 @@ PY
 =======
             dist/openapi.yaml
 >>>>>>> origin/main
+
+      - name: Services inventory validation (report-only)
+        run: |
+          pip install pyyaml
+          python scripts/validate-services.py

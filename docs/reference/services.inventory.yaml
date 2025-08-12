@@ -1,0 +1,66 @@
+services:
+  - name: api-gateway
+    path: services/api-gateway
+    kind: http
+    routes_base: /api
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: web
+    path: services/web
+    kind: web
+    contracts: [healthz]
+
+  - name: mobile-api
+    path: services/mobile-api
+    kind: http
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: auth-service
+    path: services/auth-service
+    kind: http
+    db: openpolicy_auth
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: policy-service
+    path: services/policy-service
+    kind: http
+    db: openpolicy_app
+    domains: [policies, committees, debates, votes]
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: search-service
+    path: services/search-service
+    kind: http
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: notification-service
+    path: services/notification-service
+    kind: http
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: config-service
+    path: services/config-service
+    kind: http
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: monitoring-service
+    path: services/monitoring-service
+    kind: http
+    contracts: [healthz, readyz, metrics]
+
+  - name: scraper-service
+    path: services/scraper-service
+    kind: worker+http
+    db: openpolicy_scrapers
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: etl
+    path: services/etl
+    kind: worker+http
+    db: [openpolicy_scrapers, openpolicy_app]
+    contracts: [healthz, readyz, metrics, alembic]
+
+  - name: legacy-django
+    path: services/legacy-django
+    kind: http
+    contracts: [healthz, readyz, metrics]
