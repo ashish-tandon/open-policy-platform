@@ -5,9 +5,16 @@
 - Health: `/api/v1/health` and `/api/v1/health/detailed`
 
 ## Prometheus
-- Config file: `backend/monitoring/prometheus.yml`
-- Run via docker-compose (service: `prometheus`)
+- Config: `backend/monitoring/prometheus.yml`
+- Alert rules: `backend/monitoring/alert.rules.yml`
+- Compose service: `prometheus` in `backend/docker-compose.yml` or top-level `docker-compose.yml`
 
 ## Grafana
-- Provisioned datasource: `backend/monitoring/grafana-provisioning/datasources/datasource.yml`
+- Datasource: `backend/monitoring/grafana-provisioning/datasources/datasource.yml`
+- Dashboards: `backend/monitoring/grafana-provisioning/dashboards/*.json`
+- Compose service: `grafana` in `backend/docker-compose.yml` or top-level `docker-compose.yml`
 - Access: http://localhost:3000 (default password `admin`)
+
+## Kubernetes
+- Use `infrastructure/k8s/*` for API.
+- Add Prometheus Operator or custom Prometheus deployment as per cluster standards.

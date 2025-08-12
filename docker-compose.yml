@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: openpolicy
+      POSTGRES_USER: openpolicy
+      POSTGRES_PASSWORD: openpolicy123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ./backend
+    environment:
+      - DATABASE_URL=postgresql://openpolicy:openpolicy123@postgres:5432/openpolicy_app
+      - APP_DATABASE_URL=postgresql://openpolicy:openpolicy123@postgres:5432/openpolicy_app
+      - SCRAPERS_DATABASE_URL=postgresql://openpolicy:openpolicy123@postgres:5432/openpolicy_scrapers
+      - AUTH_DATABASE_URL=postgresql://openpolicy:openpolicy123@postgres:5432/openpolicy_auth
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=openpolicy_app
+      - DB_USER=openpolicy
+      - DB_PASSWORD=openpolicy123
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  web:
+    working_dir: /app
+    build:
+      context: ./web
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    command: ["npm", "run", "dev", "--", "--host"]
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./backend/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./backend/monitoring/alert.rules.yml:/etc/prometheus/alert.rules.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./backend/monitoring/grafana-provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./backend/monitoring/grafana-provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  pgdata:
+  grafana_data:

@@ -1,0 +1,19 @@
+groups:
+  - name: openpolicy-api-alerts
+    rules:
+      - alert: APILivenessDown
+        expr: up{job="openpolicy-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "OpenPolicy API liveness is down"
+          description: "No targets up for job openpolicy-api"
+      - alert: APIReadinessDegraded
+        expr: probe_success{job="openpolicy-api-readiness"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "OpenPolicy API readiness failing"
+          description: "Readiness probe failing for 5m"

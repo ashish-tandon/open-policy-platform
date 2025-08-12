@@ -33,10 +33,10 @@ jobs:
           pip install mypy
           mypy backend || true
 
-      - name: Unit tests (pytest)
+      - name: Unit tests with coverage (pytest)
         run: |
           cd backend
-          pytest -q || true
+          pytest --cov=. --cov-report=term-missing --cov-fail-under=50 || true
 
       - name: Check docs links
         run: bash scripts/check-docs-links.sh

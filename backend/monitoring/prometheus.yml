@@ -3,10 +3,14 @@ global:
 
 scrape_configs:
   - job_name: 'openpolicy-api'
+    metrics_path: /metrics
     static_configs:
       - targets: ['openpolicy-platform:8000']
 
-  # Uncomment if you expose nginx ingress metrics
-  # - job_name: 'nginx-ingress'
-  #   static_configs:
-  #     - targets: ['nginx-ingress-controller:10254']
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+# Uncomment if you expose nginx ingress metrics
+# - job_name: 'nginx-ingress'
+#   static_configs:
+#     - targets: ['nginx-ingress-controller:10254']
