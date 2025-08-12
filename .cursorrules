@@ -1,0 +1,40 @@
+# Cursor Rules for Open Policy Platform
+
+## Working Process
+- Prefer small, verifiable edits with automated checks (docs link check, OpenAPI export)
+- Keep single source of truth in `docs/` and reflect all code changes back into docs
+- After changing any variable or config, verify knock-on effects (startup, docs, CI)
+- Default to FastAPI on port 8000; health at `/api/v1/health`
+
+## Services and Directories
+- Backend (FastAPI): `backend/api` entrypoint `backend.api.main:app`
+- Web (Vite/React): `web/` with `VITE_API_URL`
+- Scripts: `scripts/` for setup, start, deploy, checks
+- Documentation: `docs/` with architecture, API, ops, deployment
+- Infrastructure: `backend/docker-compose.yml`, `backend/Dockerfile`, `backend/nginx.conf`
+
+## Environments and Variables
+- Canonical: `DATABASE_URL`
+- Optional logical DBs: `APP_DATABASE_URL`, `SCRAPERS_DATABASE_URL`, `AUTH_DATABASE_URL`
+- API: `API_HOST`, `API_PORT` (default 8000)
+- Security: `SECRET_KEY`, `ALLOWED_ORIGINS`, `ALLOWED_HOSTS`
+- Frontend: `VITE_API_URL`
+
+## Checklists
+- Before commit: run `bash scripts/check-docs-links.sh` and export OpenAPI
+- On docs change: ensure links updated, schemas/endpoints consistent
+- On API change: update `docs/api/endpoints.md` and `docs/api/schemas.md`
+- On env change: update `env.example` and `docs/operations/environment-variables.md`
+
+## Style
+- Python: type hints, clear names, no broad exceptions
+- TS/React: strict TS, clear props/interfaces, no unused vars
+
+## Safety
+- Never hardcode secrets; use env
+- Production: fail startup if `SECRET_KEY` weak or hosts/origins permissive
+
+## Build Parameters
+- OpenAPI export: `bash scripts/export-openapi.sh`
+- Docker build: `docker compose -f backend/docker-compose.yml up -d --build`
+- Local dev: `./scripts/start-all.sh`
