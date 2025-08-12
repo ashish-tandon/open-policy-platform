@@ -17,20 +17,37 @@ jobs:
       - name: Install tools
         run: |
           python -m pip install --upgrade pip pyyaml
+          sudo apt-get update && sudo apt-get install -y jq
       - name: Generate service list
         id: svcs
         run: |
           python - << 'PY'
 import yaml, json
 inv=yaml.safe_load(open('docs/reference/services.inventory.yaml'))
-svcs=[s['path'] for s in inv['services']]
-print('::set-output name=list::'+json.dumps(svcs))
+print('::set-output name=json::'+json.dumps(inv))
 PY
       - name: Build images (best effort)
         run: |
-          for svc in $(echo '${{ steps.svcs.outputs.list }}' | jq -r '.[]'); do
-            if [ -f "$svc/Dockerfile" ]; then
-              echo "Building $svc";
-              docker build -q -t test/$svc:ci $svc || true;
+          echo '${{ steps.svcs.outputs.json }}' | jq -c '.services[]' | while read -r svc; do
+            path=$(echo "$svc" | jq -r '.path');
+            name=$(echo "$svc" | jq -r '.name');
+            if [ -f "$path/Dockerfile" ]; then
+              echo "Building $name ($path)";
+              docker build -q -t test/$name:ci $path || true;
+            fi;
+          done
+      - name: Smoke test /healthz (best effort)
+        run: |
+          echo '${{ steps.svcs.outputs.json }}' | jq -c '.services[]' | while read -r svc; do
+            path=$(echo "$svc" | jq -r '.path');
+            name=$(echo "$svc" | jq -r '.name');
+            port=$(echo "$svc" | jq -r '.port // empty');
+            kind=$(echo "$svc" | jq -r '.kind');
+            if [ -n "$port" ] && [ -f "$path/Dockerfile" ] && [ "$kind" != "web" ]; then
+              echo "Running $name on $port";
+              docker run -d --rm -p $port:$port --name svc_$name test/$name:ci || true;
+              sleep 3;
+              curl -fsS http://localhost:$port/healthz || true;
+              docker rm -f svc_$name || true;
             fi;
           done

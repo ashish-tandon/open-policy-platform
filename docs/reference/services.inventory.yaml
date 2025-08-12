@@ -3,22 +3,26 @@ services:
     path: services/api-gateway
     kind: http
     routes_base: /api
+    port: 8089
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: web
     path: services/web
     kind: web
+    port: 5173
     contracts: [healthz]
 
   - name: mobile-api
     path: services/mobile-api
     kind: http
+    port: 8088
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: auth-service
     path: services/auth-service
     kind: http
     db: openpolicy_auth
+    port: 8080
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: policy-service
@@ -26,41 +30,49 @@ services:
     kind: http
     db: openpolicy_app
     domains: [policies, committees, debates, votes]
+    port: 8081
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: search-service
     path: services/search-service
     kind: http
+    port: 8082
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: notification-service
     path: services/notification-service
     kind: http
+    port: 8083
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: config-service
     path: services/config-service
     kind: http
+    port: 8084
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: monitoring-service
     path: services/monitoring-service
     kind: http
+    port: 8085
     contracts: [healthz, readyz, metrics]
 
   - name: scraper-service
     path: services/scraper-service
     kind: worker+http
     db: openpolicy_scrapers
+    port: 8087
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: etl
     path: services/etl
     kind: worker+http
     db: [openpolicy_scrapers, openpolicy_app]
+    port: 8086
     contracts: [healthz, readyz, metrics, alembic]
 
   - name: legacy-django
     path: services/legacy-django
     kind: http
+    port: 8090
     contracts: [healthz, readyz, metrics]
