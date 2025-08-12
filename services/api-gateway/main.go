@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	promhttp "github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -30,9 +32,48 @@ func envOrDefault(env, def string) string {
 	return v
 }
 
+func serviceMap() map[string]string {
+	return map[string]string{
+		"auth-service":          envOrDefault("AUTH_SERVICE_URL", "http://auth-service:9001"),
+		"policy-service":        envOrDefault("POLICY_SERVICE_URL", "http://policy-service:9002"),
+		"search-service":        envOrDefault("SEARCH_SERVICE_URL", "http://search-service:9003"),
+		"notification-service":  envOrDefault("NOTIF_SERVICE_URL", "http://notification-service:9004"),
+		"config-service":        envOrDefault("CONFIG_SERVICE_URL", "http://config-service:9005"),
+		"monitoring-service":    envOrDefault("MONITORING_SERVICE_URL", "http://monitoring-service:9006"),
+		"etl":                   envOrDefault("ETL_SERVICE_URL", "http://etl:9007"),
+		"scraper-service":       envOrDefault("SCRAPER_SERVICE_URL", "http://scraper-service:9008"),
+		"mobile-api":            envOrDefault("MOBILE_API_URL", "http://mobile-api:9009"),
+		"legacy-django":         envOrDefault("LEGACY_DJANGO_URL", "http://legacy-django:9010"),
+	}
+}
+
 func makeReverseProxy(target string) *httputil.ReverseProxy {
 	u, _ := url.Parse(target)
 	return httputil.NewSingleHostReverseProxy(u)
+}
+
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 2 * time.Second}
+	statuses := map[string]any{}
+	for name, base := range serviceMap() {
+		url := strings.TrimRight(base, "/") + "/healthz"
+		st := map[string]any{"status": "unknown", "target": base}
+		resp, err := client.Get(url)
+		if err == nil {
+			st["http"] = resp.StatusCode
+			if resp.StatusCode == 200 {
+				st["status"] = "ok"
+			} else {
+				st["status"] = "error"
+			}
+		} else {
+			st["error"] = err.Error()
+			st["status"] = "error"
+		}
+		statuses[name] = st
+	}
+	json.NewEncoder(w).Encode(statuses)
 }
 
 func gatewayHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +93,10 @@ func gatewayHandler(w http.ResponseWriter, r *http.Request) {
 		"/api/scrapers/":      envOrDefault("SCRAPER_SERVICE_URL", "http://scraper-service:9008"),
 		"/api/mobile/":        envOrDefault("MOBILE_API_URL", "http://mobile-api:9009"),
 		"/api/legacy/":        envOrDefault("LEGACY_DJANGO_URL", "http://legacy-django:9010"),
+	}
+	if strings.HasPrefix(path, "/api/status") {
+		statusHandler(w, r)
+		return
 	}
 	for prefix, target := range routes {
 		if strings.HasPrefix(path, prefix) {
