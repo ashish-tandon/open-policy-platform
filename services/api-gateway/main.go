@@ -22,6 +22,14 @@ func readyz(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"status":"ok"}`))
 }
 
+func envOrDefault(env, def string) string {
+	v := os.Getenv(env)
+	if v == "" {
+		return def
+	}
+	return v
+}
+
 func makeReverseProxy(target string) *httputil.ReverseProxy {
 	u, _ := url.Parse(target)
 	return httputil.NewSingleHostReverseProxy(u)
@@ -29,13 +37,27 @@ func makeReverseProxy(target string) *httputil.ReverseProxy {
 
 func gatewayHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
-	if strings.HasPrefix(path, "/api/auth/") {
-		makeReverseProxy("http://localhost:9001").ServeHTTP(w, r)
-		return
+	// Map prefixes to service URLs (env-configurable; K8s DNS defaults)
+	routes := map[string]string{
+		"/api/auth/":          envOrDefault("AUTH_SERVICE_URL", "http://auth-service:9001"),
+		"/api/policies/":      envOrDefault("POLICY_SERVICE_URL", "http://policy-service:9002"),
+		"/api/committees/":    envOrDefault("POLICY_SERVICE_URL", "http://policy-service:9002"),
+		"/api/debates/":       envOrDefault("POLICY_SERVICE_URL", "http://policy-service:9002"),
+		"/api/votes/":         envOrDefault("POLICY_SERVICE_URL", "http://policy-service:9002"),
+		"/api/search/":        envOrDefault("SEARCH_SERVICE_URL", "http://search-service:9003"),
+		"/api/notifications/": envOrDefault("NOTIF_SERVICE_URL", "http://notification-service:9004"),
+		"/api/config/":        envOrDefault("CONFIG_SERVICE_URL", "http://config-service:9005"),
+		"/api/monitoring/":    envOrDefault("MONITORING_SERVICE_URL", "http://monitoring-service:9006"),
+		"/api/etl/":           envOrDefault("ETL_SERVICE_URL", "http://etl:9007"),
+		"/api/scrapers/":      envOrDefault("SCRAPER_SERVICE_URL", "http://scraper-service:9008"),
+		"/api/mobile/":        envOrDefault("MOBILE_API_URL", "http://mobile-api:9009"),
+		"/api/legacy/":        envOrDefault("LEGACY_DJANGO_URL", "http://legacy-django:9010"),
 	}
-	if strings.HasPrefix(path, "/api/policies/") || strings.HasPrefix(path, "/api/committees/") || strings.HasPrefix(path, "/api/debates/") || strings.HasPrefix(path, "/api/votes/") {
-		makeReverseProxy("http://localhost:9002").ServeHTTP(w, r)
-		return
+	for prefix, target := range routes {
+		if strings.HasPrefix(path, prefix) {
+			makeReverseProxy(target).ServeHTTP(w, r)
+			return
+		}
 	}
 	http.NotFound(w, r)
 }

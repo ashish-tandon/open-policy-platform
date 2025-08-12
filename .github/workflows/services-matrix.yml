@@ -65,3 +65,15 @@ PY
           curl -fsS -X POST "http://localhost:9000/api/auth/login?username=foo&password=bar" || true
           curl -fsS "http://localhost:9000/api/policies/policies" || true
           docker rm -f svc_gateway svc_auth svc_policy || true
+      - name: Unit tests (auth-service, policy-service)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r services/auth-service/requirements.txt || true
+          pip install -r services/policy-service/requirements.txt || true
+          python - << 'PY'
+import sys, subprocess
+print('auth-service tests:')
+subprocess.run([sys.executable, '-m', 'pytest', 'services/auth-service'], check=False)
+print('policy-service tests:')
+subprocess.run([sys.executable, '-m', 'pytest', 'services/policy-service'], check=False)
+PY
