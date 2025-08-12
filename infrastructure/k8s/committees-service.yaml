@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: committees-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: committees-service
+  template:
+    metadata:
+      labels:
+        app: committees-service
+    spec:
+      containers:
+        - name: committees-service
+          image: ghcr.io/your-org/committees-service:latest
+          ports:
+            - containerPort: 9016
+          env:
+            - name: PORT
+              value: "9016"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9016
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9016
+            initialDelaySeconds: 5
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: committees-service
+spec:
+  selector:
+    app: committees-service
+  ports:
+    - name: http
+      port: 9016
+      targetPort: 9016

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: files-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: files-service
+  template:
+    metadata:
+      labels:
+        app: files-service
+    spec:
+      containers:
+        - name: files-service
+          image: ghcr.io/your-org/files-service:latest
+          ports:
+            - containerPort: 9019
+          env:
+            - name: PORT
+              value: "9019"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9019
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9019
+            initialDelaySeconds: 5
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: files-service
+spec:
+  selector:
+    app: files-service
+  ports:
+    - name: http
+      port: 9019
+      targetPort: 9019

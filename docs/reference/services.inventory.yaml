@@ -94,3 +94,51 @@ services:
     kind: http
     port: 9014
     contracts: [healthz, readyz, metrics, openapi]
+
+  - name: representatives-service
+    path: services/representatives-service
+    kind: http
+    port: 9015
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: committees-service
+    path: services/committees-service
+    kind: http
+    port: 9016
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: debates-service
+    path: services/debates-service
+    kind: http
+    port: 9017
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: votes-service
+    path: services/votes-service
+    kind: http
+    port: 9018
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: files-service
+    path: services/files-service
+    kind: http
+    port: 9019
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: analytics-service
+    path: services/analytics-service
+    kind: http
+    port: 9020
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: dashboard-service
+    path: services/dashboard-service
+    kind: http
+    port: 9021
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: data-management-service
+    path: services/data-management-service
+    kind: http
+    port: 9022
+    contracts: [healthz, readyz, metrics, openapi]
