@@ -14,6 +14,7 @@ import os
 # Import all routers
 from .routers import policies, scrapers, admin, auth, health, scraper_monitoring, data_management, dashboard
 from .routers import metrics as metrics_router
+from .routers import representatives, committees, debates, votes, search, analytics, notifications, files
 
 # Import middleware
 from .middleware.performance import PerformanceMiddleware
@@ -121,6 +122,14 @@ def create_app() -> FastAPI:
     app.include_router(health.router, prefix="/api/v1", tags=["Health"])
     app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
     app.include_router(policies.router, prefix="/api/v1/policies", tags=["Policies"])
+    app.include_router(representatives.router, prefix="/api/v1/representatives", tags=["Representatives"])
+    app.include_router(committees.router, prefix="/api/v1/committees", tags=["Committees"])
+    app.include_router(debates.router, prefix="/api/v1/debates", tags=["Debates"])
+    app.include_router(votes.router, prefix="/api/v1/votes", tags=["Votes"])
+    app.include_router(search.router, prefix="/api/v1/search", tags=["Search"])
+    app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics"])
+    app.include_router(notifications.router, prefix="/api/v1/notifications", tags=["Notifications"])
+    app.include_router(files.router, prefix="/api/v1/files", tags=["Files"])
     app.include_router(scrapers.router, prefix="/api/v1/scrapers", tags=["Scrapers"])
     app.include_router(scraper_monitoring.router, tags=["Scraper Monitoring"])
     app.include_router(data_management.router, tags=["Data Management"])

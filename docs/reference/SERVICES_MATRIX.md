@@ -3,7 +3,24 @@
 Authoritative inventory of services/components across the platform.
 
 ## Core Services
-- API (FastAPI): `backend/api` → routes under `/api/v1/*`, `/metrics`, OpenAPI export
+- API (FastAPI): `backend/api`
+  - Health: `/api/v1/health`, `/api/v1/health/detailed`
+  - Metrics: `/metrics`
+  - Endpoints:
+    - Authentication: `/api/v1/auth/*`
+    - Policies: `/api/v1/policies/*`
+    - Representatives: `/api/v1/representatives/*`
+    - Committees: `/api/v1/committees/*`
+    - Debates: `/api/v1/debates/*`
+    - Votes: `/api/v1/votes/*`
+    - Search: `/api/v1/search/*`
+    - Analytics: `/api/v1/analytics/*`
+    - Notifications: `/api/v1/notifications/*`
+    - Files: `/api/v1/files/*`
+    - Scrapers: `/api/v1/scrapers/*`
+    - Data Management: `/api/v1/*` (data ops)
+    - Dashboard: `/api/v1/dashboard/*`
+    - Admin: `/api/v1/admin/*`
 - Web (Vite/React): `web/`
 - Database (PostgreSQL): logical DBs `openpolicy_app`, `openpolicy_scrapers`, `openpolicy_auth`
 - Redis: cache/session
@@ -29,7 +46,9 @@ Authoritative inventory of services/components across the platform.
 
 ## Documentation
 - Architecture, data flow, variables, deployment, operations: `docs/*`
-- Unified references: `docs/reference/UNIFIED_SERVICE_REFERENCE.md`
+- Unified references:
+  - `docs/reference/UNIFIED_SERVICE_REFERENCE.md`
+  - `docs/reference/SERVICES_MATRIX.md`
 
 ## Notes
 - All env vars documented in `env.example` and `docs/operations/environment-variables.md`
