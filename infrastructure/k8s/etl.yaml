@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etl
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etl
+  template:
+    metadata:
+      labels:
+        app: etl
+    spec:
+      containers:
+        - name: etl
+          image: ghcr.io/your-org/etl:latest
+          ports:
+            - containerPort: 9007
+          env:
+            - name: PORT
+              value: "9007"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9007
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9007
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: etl
+spec:
+  selector:
+    app: etl
+  ports:
+    - name: http
+      port: 9007
+      targetPort: 9007

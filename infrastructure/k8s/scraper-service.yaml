@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scraper-service
+  template:
+    metadata:
+      labels:
+        app: scraper-service
+    spec:
+      containers:
+        - name: scraper-service
+          image: ghcr.io/your-org/scraper-service:latest
+          ports:
+            - containerPort: 9008
+          env:
+            - name: PORT
+              value: "9008"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9008
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9008
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scraper-service
+spec:
+  selector:
+    app: scraper-service
+  ports:
+    - name: http
+      port: 9008
+      targetPort: 9008
