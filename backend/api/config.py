@@ -3,7 +3,7 @@ API Configuration Settings
 """
 
 import os
-from typing import List
+from typing import List, Optional
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
@@ -18,8 +18,13 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     
-    # Database
+    # Database (canonical)
     database_url: str = "postgresql://postgres@localhost:5432/openpolicy"
+
+    # Optional logical databases
+    app_database_url: Optional[str] = None
+    scrapers_database_url: Optional[str] = None
+    auth_database_url: Optional[str] = None
     
     # Security
     secret_key: str = "your-secret-key-change-in-production"
@@ -61,6 +66,19 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "case_sensitive": False
     }
+
+    # Derived properties with fallback to canonical database_url
+    @property
+    def resolved_app_database_url(self) -> str:
+        return self.app_database_url or self.database_url
+
+    @property
+    def resolved_scrapers_database_url(self) -> str:
+        return self.scrapers_database_url or self.database_url
+
+    @property
+    def resolved_auth_database_url(self) -> str:
+        return self.auth_database_url or self.database_url
 
 # Global settings instance
 settings = Settings()
