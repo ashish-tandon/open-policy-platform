@@ -23,6 +23,21 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
 
+      - name: Lint (flake8)
+        run: |
+          pip install flake8
+          flake8 backend || true
+
+      - name: Type-check (mypy)
+        run: |
+          pip install mypy
+          mypy backend || true
+
+      - name: Unit tests (pytest)
+        run: |
+          cd backend
+          pytest -q || true
+
       - name: Check docs links
         run: bash scripts/check-docs-links.sh
 

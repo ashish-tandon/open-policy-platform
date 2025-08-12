@@ -7,6 +7,7 @@ Authoritative source for services, APIs, healthchecks, variables, and startup or
   - Entrypoint: `backend.api.main:app`
   - Port: 8000
   - Health: `/api/v1/health` (liveness), `/api/v1/health/detailed` (readiness)
+  - Metrics: `/metrics` (Prometheus format)
   - OpenAPI: `dist/openapi.(json|yaml)`
 - Web (Vite/React)
   - Port: 5173 (dev), behind nginx in prod
@@ -15,6 +16,7 @@ Authoritative source for services, APIs, healthchecks, variables, and startup or
   - Databases: `openpolicy_app`, `openpolicy_scrapers`, `openpolicy_auth`
 - Redis: 6379
 - Nginx: reverse-proxy to API
+- Monitoring: Prometheus + Grafana
 
 ## Variables
 - Canonical: `DATABASE_URL`
@@ -31,9 +33,9 @@ Authoritative source for services, APIs, healthchecks, variables, and startup or
 4. Web (served via nginx or static host)
 
 ## Health and Heartbeat
-- API liveness: `/api/v1/health`
-- API readiness: `/api/v1/health/detailed`
-- Metrics: `/api/v1/health/metrics`
+- Liveness: `/api/v1/health`
+- Readiness: `/api/v1/health/detailed`
+- Metrics: `/metrics`
 
 ## Data Flow
 - Scrapers → DB (`openpolicy_scrapers`) and reports/logs

@@ -13,6 +13,7 @@ import os
 
 # Import all routers
 from .routers import policies, scrapers, admin, auth, health, scraper_monitoring, data_management, dashboard
+from .routers import metrics as metrics_router
 
 # Import middleware
 from .middleware.performance import PerformanceMiddleware
@@ -125,6 +126,7 @@ def create_app() -> FastAPI:
     app.include_router(data_management.router, tags=["Data Management"])
     app.include_router(dashboard.router, tags=["Dashboard"])
     app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+    app.include_router(metrics_router.router, tags=["Metrics"])  # /metrics
     
     @app.get("/")
     async def root():
