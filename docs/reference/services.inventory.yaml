@@ -3,26 +3,26 @@ services:
     path: services/api-gateway
     kind: http
     routes_base: /api
-    port: 8089
+    port: 9000
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: web
     path: services/web
     kind: web
-    port: 5173
+    port: 9011
     contracts: [healthz]
 
   - name: mobile-api
     path: services/mobile-api
     kind: http
-    port: 8088
+    port: 9009
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: auth-service
     path: services/auth-service
     kind: http
     db: openpolicy_auth
-    port: 8080
+    port: 9001
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: policy-service
@@ -30,49 +30,49 @@ services:
     kind: http
     db: openpolicy_app
     domains: [policies, committees, debates, votes]
-    port: 8081
+    port: 9002
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: search-service
     path: services/search-service
     kind: http
-    port: 8082
+    port: 9003
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: notification-service
     path: services/notification-service
     kind: http
-    port: 8083
+    port: 9004
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: config-service
     path: services/config-service
     kind: http
-    port: 8084
+    port: 9005
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: monitoring-service
     path: services/monitoring-service
     kind: http
-    port: 8085
+    port: 9006
     contracts: [healthz, readyz, metrics]
 
   - name: scraper-service
     path: services/scraper-service
     kind: worker+http
     db: openpolicy_scrapers
-    port: 8087
+    port: 9008
     contracts: [healthz, readyz, metrics, openapi]
 
   - name: etl
     path: services/etl
     kind: worker+http
     db: [openpolicy_scrapers, openpolicy_app]
-    port: 8086
+    port: 9007
     contracts: [healthz, readyz, metrics, alembic]
 
   - name: legacy-django
     path: services/legacy-django
     kind: http
-    port: 8090
+    port: 9010
     contracts: [healthz, readyz, metrics]

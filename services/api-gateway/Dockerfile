@@ -6,5 +6,5 @@ RUN go mod init api-gateway || true && go mod tidy && go build -o /out/api-gatew
 FROM alpine:3.20
 WORKDIR /app
 COPY --from=build /out/api-gateway /app/api-gateway
-EXPOSE 8089
+EXPOSE 9000
 CMD ["/app/api-gateway"]

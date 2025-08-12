@@ -3,5 +3,5 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
-EXPOSE 8085
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8085"]
+EXPOSE 9006
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "9006"]

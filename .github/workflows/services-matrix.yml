@@ -45,7 +45,7 @@ PY
             kind=$(echo "$svc" | jq -r '.kind');
             if [ -n "$port" ] && [ -f "$path/Dockerfile" ] && [ "$kind" != "web" ]; then
               echo "Running $name on $port";
-              docker run -d --rm -p $port:$port --name svc_$name test/$name:ci || true;
+              docker run -d --rm -p $port:$port --env PORT=$port --name svc_$name test/$name:ci || true;
               sleep 3;
               curl -fsS http://localhost:$port/healthz || true;
               docker rm -f svc_$name || true;

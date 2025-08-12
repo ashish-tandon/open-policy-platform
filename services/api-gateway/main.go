@@ -22,7 +22,7 @@ func readyz(w http.ResponseWriter, r *http.Request) {
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8089"
+		port = "9000"
 	}
 	http.HandleFunc("/healthz", healthz)
 	http.HandleFunc("/readyz", readyz)
