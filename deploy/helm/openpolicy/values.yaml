@@ -1,0 +1,52 @@
+global:
+  imageRegistry: ghcr.io/your-org
+
+services:
+  apiGateway:
+    name: api-gateway
+    port: 9000
+    image: api-gateway:latest
+  auth:
+    name: auth-service
+    port: 9001
+    image: auth-service:latest
+  policy:
+    name: policy-service
+    port: 9002
+    image: policy-service:latest
+  search:
+    name: search-service
+    port: 9003
+    image: search-service:latest
+  notification:
+    name: notification-service
+    port: 9004
+    image: notification-service:latest
+  config:
+    name: config-service
+    port: 9005
+    image: config-service:latest
+  monitoring:
+    name: monitoring-service
+    port: 9006
+    image: monitoring-service:latest
+  etl:
+    name: etl
+    port: 9007
+    image: etl:latest
+  scraper:
+    name: scraper-service
+    port: 9008
+    image: scraper-service:latest
+  mobile:
+    name: mobile-api
+    port: 9009
+    image: mobile-api:latest
+  legacy:
+    name: legacy-django
+    port: 9010
+    image: legacy-django:latest
+  web:
+    name: web
+    port: 9011
+    image: web:latest
