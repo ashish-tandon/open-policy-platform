@@ -26,6 +26,11 @@ inv=yaml.safe_load(open('docs/reference/services.inventory.yaml'))
 svcs=[s['path'] for s in inv['services']]
 print('::set-output name=list::'+json.dumps(svcs))
 PY
-      - name: Build (dry-run)
+      - name: Build images (best effort)
         run: |
-          echo "Services: ${{ steps.svcs.outputs.list }}"
+          for svc in $(echo '${{ steps.svcs.outputs.list }}' | jq -r '.[]'); do
+            if [ -f "$svc/Dockerfile" ]; then
+              echo "Building $svc";
+              docker build -q -t test/$svc:ci $svc || true;
+            fi;
+          done
