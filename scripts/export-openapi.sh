@@ -5,10 +5,12 @@ cd "$ROOT_DIR"
 
 mkdir -p dist
 python - << 'PY'
-import json
+import json, yaml
 from backend.api.main import app
 schema = app.openapi()
 with open('dist/openapi.json', 'w') as f:
     json.dump(schema, f, indent=2)
-print('Wrote dist/openapi.json')
+with open('dist/openapi.yaml', 'w') as f:
+    yaml.safe_dump(schema, f, sort_keys=False)
+print('Wrote dist/openapi.json and dist/openapi.yaml')
 PY
