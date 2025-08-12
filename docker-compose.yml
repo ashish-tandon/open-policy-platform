@@ -70,4 +70,8 @@ services:
 
 volumes:
   pgdata:
+<<<<<<< HEAD
   grafana_data:
+=======
+  grafana_data:
+>>>>>>> origin/main

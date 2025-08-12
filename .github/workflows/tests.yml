@@ -63,4 +63,8 @@ PY
           name: openapi-schema
           path: |
             dist/openapi.json
+<<<<<<< HEAD
             dist/openapi.yaml
+=======
+            dist/openapi.yaml
+>>>>>>> origin/main

@@ -16,4 +16,8 @@ groups:
           severity: warning
         annotations:
           summary: "OpenPolicy API readiness failing"
+<<<<<<< HEAD
           description: "Readiness probe failing for 5m"
+=======
+          description: "Readiness probe failing for 5m"
+>>>>>>> origin/main

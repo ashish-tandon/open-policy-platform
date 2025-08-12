@@ -5,4 +5,8 @@ router = APIRouter()
 
 @router.get("/metrics")
 async def metrics() -> Response:
+<<<<<<< HEAD
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+=======
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+>>>>>>> origin/main
