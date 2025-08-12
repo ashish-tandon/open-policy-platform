@@ -1,0 +1,11 @@
+bugs:
+  - id: BUG-0001
+    service: auth-service
+    title: Placeholder JWT validation
+    status: open
+    priority: high
+  - id: BUG-0002
+    service: policy-service
+    title: Implement DB-backed policies list
+    status: open
+    priority: medium
