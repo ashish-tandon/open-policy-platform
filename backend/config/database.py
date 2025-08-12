@@ -12,11 +12,15 @@ from sqlalchemy.pool import StaticPool
 class DatabaseConfig(BaseSettings):
     """Database configuration settings"""
     
-    # Database connection
-    host: str = "localhost"
-    port: int = 5432
-    database: str = "openpolicy"
-    username: str = os.getenv("DB_USERNAME", "ashishtandon")
+    # Canonical URLs (preferred)
+    app_database_url: Optional[str] = os.getenv("APP_DATABASE_URL")
+    database_url: Optional[str] = os.getenv("DATABASE_URL")
+    
+    # Fallback granular settings
+    host: str = os.getenv("DB_HOST", "localhost")
+    port: int = int(os.getenv("DB_PORT", "5432"))
+    database: str = os.getenv("DB_NAME", "openpolicy")
+    username: str = os.getenv("DB_USERNAME", os.getenv("DB_USER", "postgres"))
     password: str = os.getenv("DB_PASSWORD", "")
     
     # Connection pool settings
@@ -33,11 +37,14 @@ class DatabaseConfig(BaseSettings):
         env_prefix = "DB_"
     
     def get_url(self) -> str:
-        """Get database URL"""
+        """Get effective database URL (prefers APP_DATABASE_URL or DATABASE_URL)"""
+        if self.app_database_url:
+            return self.app_database_url
+        if self.database_url:
+            return self.database_url
         if self.password:
             return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
-        else:
-            return f"postgresql://{self.username}@{self.host}:{self.port}/{self.database}"
+        return f"postgresql://{self.username}@{self.host}:{self.port}/{self.database}"
     
     def get_async_url(self) -> str:
         """Get async database URL"""
