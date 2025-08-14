@@ -33,6 +33,31 @@ while true; do
     echo "=== done ==="
   } | tee "$logfile"
   cp "$logfile" "$latest" || true
+
+  # Optional: publish results to a dedicated results branch
+  if [[ "${PUBLISH_RESULTS:-}" == "1" ]]; then
+    BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+    RESULTS_BRANCH="results/${BRANCH}"
+    SHA="$(git rev-parse HEAD)"
+    TMPDIR="$(mktemp -d)"
+    set +e
+    git fetch origin "$RESULTS_BRANCH"
+    set -e
+    # Prepare worktree for results branch
+    if git ls-remote --heads origin "$RESULTS_BRANCH" | grep -q "$RESULTS_BRANCH"; then
+      git worktree add "$TMPDIR" -f "origin/$RESULTS_BRANCH" || true
+      (cd "$TMPDIR" && git checkout -B "$RESULTS_BRANCH")
+    else
+      git worktree add -b "$RESULTS_BRANCH" "$TMPDIR" || true
+      (cd "$TMPDIR" && echo "Results for $BRANCH" > README.md && mkdir -p results && git add . && git commit -m "init results branch")
+    fi
+    mkdir -p "$TMPDIR/results"
+    cp "$latest" "$TMPDIR/results/latest.txt" || true
+    cp "$logfile" "$TMPDIR/results/${SHA}.log" || true
+    (cd "$TMPDIR" && git add results README.md && git commit -m "results: ${SHA:0:7} at $(date -u +%FT%TZ)" && git push -u origin "$RESULTS_BRANCH") || true
+    git worktree remove "$TMPDIR" --force || true
+  fi
+
   sleep 60
 done
 
