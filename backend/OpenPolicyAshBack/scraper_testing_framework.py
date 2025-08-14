@@ -18,6 +18,10 @@ from datetime import datetime
 from pathlib import Path
 import time
 
+from typing import Optional
+
+from sqlalchemy import create_engine, text as sql_text
+
 CATEGORIES = ["parliamentary", "provincial", "municipal", "civic", "update"]
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -49,6 +53,48 @@ def discover_scrapers(category: str) -> list[dict]:
 			elif len(parts) > 2 and category in ("municipal", "all"):
 				results.append({"id": name, "name": name, "category": "municipal"})
 	return results
+
+
+def write_summary_to_db(summary: dict) -> None:
+	"""Write a compact summary row to the scrapers DB if configured."""
+	try:
+		db_url: Optional[str] = os.getenv("SCRAPERS_DATABASE_URL") or os.getenv("DATABASE_URL")
+		if not db_url:
+			return
+		engine = create_engine(db_url)
+		with engine.begin() as conn:
+			conn.execute(sql_text(
+				"""
+				CREATE TABLE IF NOT EXISTS scraper_results (
+					id SERIAL PRIMARY KEY,
+					timestamp TIMESTAMPTZ NOT NULL,
+					total_scrapers INTEGER NOT NULL,
+					successful INTEGER NOT NULL,
+					failed INTEGER NOT NULL,
+					success_rate DOUBLE PRECISION NOT NULL,
+					total_records INTEGER NOT NULL
+				);
+				"""
+			))
+			conn.execute(
+				sql_text(
+					"""
+					INSERT INTO scraper_results (timestamp, total_scrapers, successful, failed, success_rate, total_records)
+					VALUES (:ts, :total, :succ, :fail, :rate, :recs)
+					"""
+				),
+				{
+					"ts": datetime.now().isoformat(),
+					"total": int(summary.get("total_scrapers", 0)),
+					"succ": int(summary.get("successful", 0)),
+					"fail": int(summary.get("failed", 0)),
+					"rate": float(summary.get("success_rate", 0.0)),
+					"recs": int(summary.get("total_records_collected", 0)),
+				},
+			)
+	except Exception:
+		# Best effort; do not fail the run
+		return
 
 
 def main():
@@ -101,6 +147,9 @@ def main():
 	out_file = out_dir / f"scraper_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
 	with open(out_file, "w") as f:
 		json.dump(report, f, indent=2)
+
+	# Best-effort DB write
+	write_summary_to_db(summary)
 
 	print(f"Report written to {out_file}")
 	return 0
