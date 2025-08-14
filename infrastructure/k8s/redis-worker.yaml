@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openpolicy-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openpolicy-redis
+  template:
+    metadata:
+      labels:
+        app: openpolicy-redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openpolicy-redis
+spec:
+  selector:
+    app: openpolicy-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openpolicy-celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openpolicy-celery-worker
+  template:
+    metadata:
+      labels:
+        app: openpolicy-celery-worker
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/your-org/openpolicy-api:latest
+          env:
+            - name: REDIS_URL
+              value: redis://openpolicy-redis:6379/0
+            - name: SCRAPERS_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: openpolicy-secrets
+                  key: SCRAPERS_DATABASE_URL
+          command: ["celery", "-A", "api.celery_app.celery_app", "worker", "-l", "info"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openpolicy-celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openpolicy-celery-beat
+  template:
+    metadata:
+      labels:
+        app: openpolicy-celery-beat
+    spec:
+      containers:
+        - name: beat
+          image: ghcr.io/your-org/openpolicy-api:latest
+          env:
+            - name: REDIS_URL
+              value: redis://openpolicy-redis:6379/0
+            - name: SCRAPERS_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: openpolicy-secrets
+                  key: SCRAPERS_DATABASE_URL
+          command: ["celery", "-A", "api.celery_app.celery_app", "beat", "-l", "info"]

@@ -406,6 +406,24 @@ async def run_category_full(category: str, retries: int = 2, max_records: int = 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error running full category: {e}")
 
+@router.post("/queue/full/{category}")
+async def queue_category_full(category: str, retries: int = 2, max_records: int = 10, current_user = Depends(require_admin)):
+    """Queue the full category runner as a Celery task (requires workers)."""
+    try:
+        try:
+            from ..celery_app import celery_app
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Celery unavailable: {e}")
+        task = celery_app.send_task(
+            "scrapers.run_category",
+            args=[category, int(retries), int(max_records)],
+        )
+        return {"task_id": task.id, "category": category}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error queueing full category: {e}")
+
 @router.get("/performance")
 async def get_scraper_performance(db: Session = Depends(get_db)):
     """Get overall scraper performance metrics"""

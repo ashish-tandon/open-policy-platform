@@ -128,6 +128,21 @@ const AdminScrapers: React.FC = () => {
 		}
 	};
 
+	const handleQueueFull = async () => {
+		setRunning(true);
+		setMessage(null);
+		try {
+			const res = await api.post(`/api/v1/scrapers/queue/full/${runCategory}`, null, { params: { retries: 2, max_records: 10 } });
+			const tid = (res.data?.task_id as string) || '';
+			setMessage(`Queued full runner for ${runCategory} (task ${tid})`);
+			setTimeout(refresh, 3000);
+		} catch (e: any) {
+			setMessage(e?.message || 'Failed to queue full runner');
+		} finally {
+			setRunning(false);
+		}
+	};
+
 	return (
 		<div className="min-h-screen bg-gray-100 p-8">
 			<h1 className="text-2xl font-bold mb-6">Scrapers Management</h1>
@@ -150,6 +165,9 @@ const AdminScrapers: React.FC = () => {
 							</button>
 							<button disabled={running} onClick={handleRunFull} className="bg-emerald-600 text-white px-3 py-1 rounded">
 								{running ? 'Running…' : 'Run Full (Retries)'}
+							</button>
+							<button disabled={running} onClick={handleQueueFull} className="bg-purple-600 text-white px-3 py-1 rounded">
+								{running ? 'Queuing…' : 'Queue Full (Workers)'}
 							</button>
 						</div>
 						{message && <div className="text-sm text-gray-600">{message}</div>}
