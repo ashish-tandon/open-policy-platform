@@ -31,6 +31,8 @@ services:
       - DB_NAME=openpolicy_app
       - DB_USER=openpolicy
       - DB_PASSWORD=openpolicy123
+      - SCRAPER_REPORTS_DIR=/app/OpenPolicyAshBack
+      - SCRAPER_LOGS_DIR=/app/OpenPolicyAshBack/logs
     ports:
       - "8000:8000"
     depends_on:
