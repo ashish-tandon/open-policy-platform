@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from .config import settings
-from ..config.database import get_database_session
+from config.database import get_database_session
 
 # Security scheme
 security = HTTPBearer()

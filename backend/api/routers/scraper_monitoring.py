@@ -101,7 +101,7 @@ async def get_data_collection_stats(request: Request):
     try:
         from sqlalchemy import text as sql_text
         try:
-            from ...config.database import engine
+            from backend.config.database import engine
         except Exception:
             from ..config import settings  # fallback
             engine = None
@@ -253,7 +253,7 @@ async def get_database_status():
     try:
         from sqlalchemy import text as sql_text
         try:
-            from ...config.database import engine
+            from backend.config.database import engine
         except Exception:
             engine = None
         tables = []

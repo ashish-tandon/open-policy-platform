@@ -51,7 +51,9 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
         # Cache successful GET responses
         if request.method == "GET" and response.status_code == 200:
             cache_key = await self._generate_cache_key(request)
-            await self._cache_response(cache_key, response)
+            # Buffer the response body so we can both cache and return it
+            response, body = await self._buffer_response(response)
+            await self._cache_response(cache_key, body, response)
         
         # Add performance headers
         process_time = time.time() - start_time
@@ -93,9 +95,8 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
         
         return None
     
-    async def _cache_response(self, cache_key: str, response: Response):
+    async def _cache_response(self, cache_key: str, content: bytes, response: Response):
         """Cache response for future use"""
-        content = await response.body()
         self.cache[cache_key] = {
             "content": content,
             "status_code": response.status_code,
@@ -139,3 +140,30 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
         
         if expired_keys:
             logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
+
+    async def _buffer_response(self, response: Response) -> tuple[Response, bytes]:
+        """Ensure response body is fully buffered and return a new Response with bytes body.
+        Handles StreamingResponse which lacks a .body() coroutine.
+        """
+        body_bytes: bytes = b""
+        try:
+            # StreamingResponse exposes an async iterator
+            body_iterator = getattr(response, "body_iterator", None)
+            if body_iterator is not None:
+                async for chunk in body_iterator:
+                    if chunk:
+                        body_bytes += chunk
+            else:
+                # Standard Response supports awaiting .body()
+                body_bytes = await response.body()
+        except Exception:
+            # Fallback to best-effort body attribute
+            body_bytes = getattr(response, "body", b"") or b""
+
+        new_response = Response(
+            content=body_bytes,
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            media_type=response.media_type
+        )
+        return new_response, body_bytes

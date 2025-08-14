@@ -121,7 +121,7 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         db_status = "healthy"
         try:
             from sqlalchemy import text as sql_text
-            from ...config.database import engine
+            from backend.config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
         except Exception as e:
@@ -175,7 +175,7 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         # Test basic connectivity
         try:
             from sqlalchemy import text as sql_text
-            from ...config.database import engine
+            from backend.config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
         except Exception as e:
@@ -479,7 +479,7 @@ async def health_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
         politician_count = 0
         try:
             from sqlalchemy import text as sql_text
-            from ...config.database import engine
+            from backend.config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
                 db_connected = True
