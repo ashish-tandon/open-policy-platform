@@ -1,0 +1,41 @@
+name: Deploy to Kubernetes
+
+on:
+  repository_dispatch:
+    types: [openpolicy-api-updated]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Write kubeconfig
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          echo "$KUBE_CONFIG" > $HOME/kubeconfig
+          echo "Kubeconfig written"
+          chmod 600 $HOME/kubeconfig
+
+      - name: Apply manifests
+        env:
+          KUBECONFIG: ${{ env.HOME }}/kubeconfig
+        run: |
+          kubectl apply -f infrastructure/k8s/api-deployment.yaml
+          kubectl apply -f infrastructure/k8s/api-service.yaml
+          kubectl apply -f infrastructure/k8s/ingress.yaml
+
+      - name: Set image (if provided)
+        if: ${{ github.event.client_payload.image != '' }}
+        env:
+          KUBECONFIG: ${{ env.HOME }}/kubeconfig
+        run: |
+          kubectl set image deployment/openpolicy-api api=${{ github.event.client_payload.image }} --record
+          kubectl rollout status deployment/openpolicy-api --timeout=120s
