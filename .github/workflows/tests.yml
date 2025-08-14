@@ -44,6 +44,9 @@ jobs:
           npm ci
           npm run build
 
+      - name: Validate ports
+        run: bash scripts/validate-ports.sh
+
       - name: Check docs links
         run: bash scripts/check-docs-links.sh
 
