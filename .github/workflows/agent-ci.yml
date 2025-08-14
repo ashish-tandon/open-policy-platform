@@ -1,0 +1,48 @@
+name: Agent Deploy and Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_workers:
+        description: "Enable workers profile"
+        required: false
+        default: "false"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start stack
+        run: |
+          cp env.example .env
+          echo "SECRET_KEY=$(openssl rand -hex 32)" >> .env
+          docker compose up -d --build postgres api web
+
+      - name: Wait for API
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8000/api/v1/health >/dev/null; then exit 0; fi
+            sleep 2
+          done
+          echo "API did not become healthy" >&2
+          docker ps
+          docker logs $(docker ps -q --filter name=api) || true
+          exit 1
+
+      - name: API detailed health
+        run: curl -fsS http://localhost:8000/api/v1/health/detailed | jq -r .
+
+      - name: Optionally enable workers
+        if: ${{ github.event.inputs.run_workers == 'true' }}
+        run: |
+          docker compose --profile workers up -d
+          sleep 5
+          curl -fsS http://localhost:8000/api/v1/admin/workers/status | jq -r .
+
+
