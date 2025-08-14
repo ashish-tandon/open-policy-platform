@@ -363,12 +363,12 @@ async def record_category_run(category: str):
         return {"category": category, "run_id": None, "error": str(e)}
 
 @router.post("/run/dev/{category}")
-async def run_category_dev(category: str):
+async def run_category_dev(category: str, current_user = Depends(require_admin)):
     """Trigger the dev category runner: records run, executes scanner, updates run."""
     try:
         cmd = [
             "python",
-            "scripts/run_category.py",
+            "backend/scripts/run_category.py",
             "--category",
             category,
         ]
@@ -383,12 +383,12 @@ async def run_category_dev(category: str):
         raise HTTPException(status_code=500, detail=f"Error running dev category: {e}")
 
 @router.post("/run/full/{category}")
-async def run_category_full(category: str, retries: int = 2, max_records: int = 10):
+async def run_category_full(category: str, retries: int = 2, max_records: int = 10, current_user = Depends(require_admin)):
     """Trigger the full category runner with retries/backoff and attempt tracking."""
     try:
         cmd = [
             "python",
-            "scripts/run_full_category.py",
+            "backend/scripts/run_full_category.py",
             "--category",
             category,
             "--retries",

@@ -64,6 +64,18 @@ services:
     command: ["celery", "-A", "api.celery_app.celery_app", "worker", "-l", "info"]
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - SCRAPERS_DATABASE_URL=postgresql://openpolicy:openpolicy123@postgres:5432/openpolicy_scrapers
+    depends_on:
+      - redis
+
+  celery-beat:
+    profiles: ["workers"]
+    build:
+      context: ./backend
+    command: ["celery", "-A", "api.celery_app.celery_app", "beat", "-l", "info"]
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - SCRAPERS_DATABASE_URL=postgresql://openpolicy:openpolicy123@postgres:5432/openpolicy_scrapers
     depends_on:
       - redis
 
