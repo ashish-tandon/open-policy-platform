@@ -173,3 +173,7 @@ Status: Ready for execution
 
 ## Health
 - API `/api/v1/health/scrapers` reads latest report and aggregates status
+
+## Canonical Run Plan
+
+See `backend/config/scraper_plan.py` for triggers, expected runtimes, dependencies, and outputs per category.
