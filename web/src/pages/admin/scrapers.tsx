@@ -18,16 +18,23 @@ const AdminScrapers: React.FC = () => {
 	const [categories, setCategories] = useState<CategoriesSummary>({});
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
+	const [runCategory, setRunCategory] = useState<string>('parliamentary');
+	const [running, setRunning] = useState(false);
+	const [message, setMessage] = useState<string | null>(null);
+
+	const refresh = async () => {
+		const [statusRes, catRes] = await Promise.all([
+			api.get('/api/v1/scrapers'),
+			api.get('/api/v1/scrapers/categories'),
+		]);
+		setScrapers(statusRes.data.scrapers || []);
+		setCategories(catRes.data.categories || {});
+	};
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const [statusRes, catRes] = await Promise.all([
-					api.get('/api/v1/scrapers'),
-					api.get('/api/v1/scrapers/categories'),
-				]);
-				setScrapers(statusRes.data.scrapers || []);
-				setCategories(catRes.data.categories || {});
+				await refresh();
 			} catch (e: any) {
 				setError(e?.message || 'Failed to load scrapers');
 			} finally {
@@ -37,6 +44,25 @@ const AdminScrapers: React.FC = () => {
 		fetchData();
 	}, []);
 
+	const handleRunCategory = async () => {
+		setRunning(true);
+		setMessage(null);
+		try {
+			await api.post(`/api/v1/scrapers/run/category/${runCategory}`, {
+				scraper_id: '',
+				category: runCategory,
+				max_records: 5,
+				force_run: false,
+			});
+			setMessage(`Triggered ${runCategory} scrapers`);
+			setTimeout(refresh, 2000);
+		} catch (e: any) {
+			setMessage(e?.message || 'Failed to trigger');
+		} finally {
+			setRunning(false);
+		}
+	};
+
 	return (
 		<div className="min-h-screen bg-gray-100 p-8">
 			<h1 className="text-2xl font-bold mb-6">Scrapers Management</h1>
@@ -44,8 +70,22 @@ const AdminScrapers: React.FC = () => {
 			{error && <div className="text-red-600">{error}</div>}
 			{!loading && !error && (
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-					<div className="bg-white rounded-lg shadow p-6">
-						<h2 className="font-semibold mb-2">Categories</h2>
+					<div className="bg-white rounded-lg shadow p-6 space-y-4">
+						<h2 className="font-semibold">Actions</h2>
+						<div className="flex items-center gap-2">
+							<select className="border rounded px-2 py-1" value={runCategory} onChange={(e) => setRunCategory(e.target.value)}>
+								<option value="parliamentary">Parliamentary</option>
+								<option value="provincial">Provincial</option>
+								<option value="municipal">Municipal</option>
+								<option value="civic">Civic</option>
+								<option value="update">Update</option>
+							</select>
+							<button disabled={running} onClick={handleRunCategory} className="bg-blue-600 text-white px-3 py-1 rounded">
+								{running ? 'Running…' : 'Run Category'}
+							</button>
+						</div>
+						{message && <div className="text-sm text-gray-600">{message}</div>}
+						<h2 className="font-semibold">Categories</h2>
 						<ul className="text-sm space-y-1">
 							{Object.entries(categories).map(([cat, s]) => (
 								<li key={cat}>
