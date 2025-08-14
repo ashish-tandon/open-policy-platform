@@ -3,7 +3,7 @@ Enhanced Scrapers Router
 Provides comprehensive scraper management, execution, and monitoring functionality
 """
 
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import subprocess
@@ -35,7 +35,7 @@ class ScraperStatus(BaseModel):
     error_count: int
 
 @router.get("/")
-async def get_scrapers(db: Session = Depends(get_db)):
+async def get_scrapers(request: Request, db: Session = Depends(get_db)):
     """Get comprehensive list of available scrapers with status"""
     try:
         # Read scraper inventory
@@ -74,11 +74,12 @@ async def get_scrapers(db: Session = Depends(get_db)):
             all_scrapers.extend(scrapers)
         
         # Get recent status from reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
+        scraper_files = [f for f in os.listdir(reports_dir) if f.startswith('scraper_test_report_')]
         if scraper_files:
             latest_report = max(scraper_files)
             try:
-                with open(latest_report, 'r') as f:
+                with open(os.path.join(reports_dir, latest_report), 'r') as f:
                     report_data = json.load(f)
                 
                 # Update status from report
@@ -129,11 +130,12 @@ async def get_scraper_categories(db: Session = Depends(get_db)):
                     categories[current_category]["count"] += 1
         
         # Get status from reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
+        scraper_files = [f for f in os.listdir(reports_dir) if f.startswith('scraper_test_report_')]
         if scraper_files:
             latest_report = max(scraper_files)
             try:
-                with open(latest_report, 'r') as f:
+                with open(os.path.join(reports_dir, latest_report), 'r') as f:
                     report_data = json.load(f)
                 
                 # Calculate category statistics
@@ -194,7 +196,8 @@ async def get_scraper_status(scraper_id: str, db: Session = Depends(get_db)):
     """Get detailed status of a specific scraper"""
     try:
         # Find scraper in reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
+        scraper_files = [f for f in os.listdir(reports_dir) if f.startswith('scraper_test_report_')]
         
         scraper_status = {
             "scraper_id": scraper_id,
@@ -211,7 +214,7 @@ async def get_scraper_status(scraper_id: str, db: Session = Depends(get_db)):
         if scraper_files:
             latest_report = max(scraper_files)
             try:
-                with open(latest_report, 'r') as f:
+                with open(os.path.join(reports_dir, latest_report), 'r') as f:
                     report_data = json.load(f)
                 
                 # Find scraper in results
@@ -231,10 +234,11 @@ async def get_scraper_status(scraper_id: str, db: Session = Depends(get_db)):
                 pass
         
         # Get execution history from logs
-        log_files = [f for f in os.listdir('.') if f.endswith('.log') and 'scraper' in f]
+        logs_dir = getattr(request.app.state, "scraper_logs_dir", os.getcwd())
+        log_files = [f for f in os.listdir(logs_dir) if f.endswith('.log') and 'scraper' in f]
         for log_file in sorted(log_files, reverse=True)[:5]:
             try:
-                with open(log_file, 'r') as f:
+                with open(os.path.join(logs_dir, log_file), 'r') as f:
                     lines = f.readlines()
                     for line in lines:
                         if scraper_id.lower() in line.lower():
@@ -261,11 +265,12 @@ async def get_scraper_logs(
         logs = []
         
         # Search for scraper in log files
-        log_files = [f for f in os.listdir('.') if f.endswith('.log') and 'scraper' in f]
+        logs_dir = getattr(request.app.state, "scraper_logs_dir", os.getcwd())
+        log_files = [f for f in os.listdir(logs_dir) if f.endswith('.log') and 'scraper' in f]
         
         for log_file in sorted(log_files, reverse=True)[:10]:
             try:
-                with open(log_file, 'r') as f:
+                with open(os.path.join(logs_dir, log_file), 'r') as f:
                     lines = f.readlines()
                     
                     for line in lines:
