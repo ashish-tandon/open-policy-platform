@@ -15,6 +15,7 @@ import api from '../../api/axios';
 	 const [items, setItems] = useState<any[]>([]);
 	 const [limit, setLimit] = useState<number>(25);
 	 const [offset, setOffset] = useState<number>(0);
+	 const [q, setQ] = useState<string>('');
 	 const [loading, setLoading] = useState<boolean>(false);
 	 const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +23,7 @@ import api from '../../api/axios';
 		 setLoading(true);
 		 setError(null);
 		 try {
-			 const res = await api.get(`/api/v1/entities/${type}`, { params: { limit, offset } });
+			 const res = await api.get(`/api/v1/entities/${type}`, { params: { limit, offset, q: q || undefined } });
 			 const data = res.data as ApiList<any>;
 			 setItems(data.items || []);
 		 } catch (e: any) {
@@ -58,7 +59,7 @@ import api from '../../api/axios';
 	 return (
 		 <div className="min-h-screen bg-gray-100 p-8 space-y-6">
 			 <h1 className="text-2xl font-bold">Entities</h1>
-			 <div className="bg-white rounded-lg shadow p-4 flex items-center gap-3">
+			 <div className="bg-white rounded-lg shadow p-4 flex items-center gap-3 flex-wrap">
 				 <label className="text-sm">Type</label>
 				 <select className="border rounded px-2 py-1" value={type} onChange={(e) => { setOffset(0); setType(e.target.value as EntityType); }}>
 					 <option value="representatives">Representatives</option>
@@ -72,7 +73,8 @@ import api from '../../api/axios';
 					 <option value={25}>25</option>
 					 <option value={50}>50</option>
 				 </select>
-				 <button className="ml-auto bg-gray-200 px-3 py-1 rounded" onClick={fetchData}>Refresh</button>
+				 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search..." className="border rounded px-2 py-1 flex-1 min-w-[200px]" />
+				 <button className="bg-gray-200 px-3 py-1 rounded" onClick={() => { setOffset(0); fetchData(); }}>Search</button>
 			 </div>
 			 {error && <div className="text-red-600">{error}</div>}
 			 <div className="bg-white rounded-lg shadow p-4">
