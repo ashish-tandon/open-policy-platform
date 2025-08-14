@@ -1,51 +1,39 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR=$(cd "$(dirname "$0")/../.." && pwd)
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
 cd "$ROOT_DIR"
+mkdir -p scripts/agent/results
 
-BRANCH=${WATCH_BRANCH:-$(git rev-parse --abbrev-ref HEAD)}
-INTERVAL=${WATCH_INTERVAL_SECONDS:-60}
-RESULTS_DIR="scripts/agent/results"
-mkdir -p "$RESULTS_DIR"
-
-log() { echo "[$(date -u +%FT%TZ)] $*"; }
+logfile="scripts/agent/results/$(date +%Y%m%d_%H%M%S).log"
+latest="scripts/agent/latest_results.txt"
 
 while true; do
-  TS=$(date -u +%Y%m%dT%H%M%SZ)
-  OUT="$RESULTS_DIR/$TS.log"
   {
-    log "Fetching updates (branch=$BRANCH)"
-    git fetch origin "$BRANCH"
-    LOCAL=$(git rev-parse HEAD)
-    REMOTE=$(git rev-parse "origin/$BRANCH")
-    if [ "$LOCAL" != "$REMOTE" ]; then
-      log "Rebasing onto origin/$BRANCH"
-      git pull --rebase origin "$BRANCH"
-    else
-      log "No new commits"
-    fi
+    echo "=== $(date) - pulling updates ==="
+    git fetch origin && git reset --hard "origin/$(git rev-parse --abbrev-ref HEAD)"
 
-    log "Rebuilding and starting services"
-    DOCKER_BUILDKIT=1 docker compose up -d --build postgres api web scraper-runner
+    echo "=== rebuild and up core ==="
+    export COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1
+    docker compose up -d --build postgres api web scraper-runner
 
-    log "Running smoke test"
+    echo "=== wait for API ==="
+    for i in $(seq 1 60); do
+      if curl -fsS http://localhost:8000/api/v1/health >/dev/null; then echo "API healthy"; break; fi
+      sleep 2
+      [[ $i -eq 60 ]] && echo "API failed to become healthy" && break
+    done
+
+    echo "=== smoke test ==="
     bash scripts/smoke-test.sh || true
 
-    log "Running backend tests in API container"
-    # Ensure API is up before running tests
-    for i in {1..20}; do
-      if curl -fsS http://localhost:8000/api/v1/health >/dev/null; then break; fi
-      sleep 2
-    done
-    docker compose exec -T api bash -lc 'cd backend && pytest -q' || true
+    echo "=== backend tests ==="
+    (cd backend && pytest -q) || true
 
-    log "Done cycle for $TS"
-  } | tee "$OUT" >/dev/null
-
-  cp "$OUT" scripts/agent/latest_results.txt || true
-  log "Sleeping for $INTERVAL seconds"
-  sleep "$INTERVAL"
+    echo "=== done ==="
+  } | tee "$logfile"
+  cp "$logfile" "$latest" || true
+  sleep 60
 done
 
 
