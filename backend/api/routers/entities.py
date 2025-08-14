@@ -69,3 +69,58 @@ async def list_bills(limit: int = Query(50, ge=1, le=200), offset: int = Query(0
 		raise
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error listing bills: {e}")
+
+
+@router.get("/committees")
+async def list_committees(limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0)):
+	"""List committees (maps to core_organization in old schema)"""
+	try:
+		with _engine().connect() as conn:
+			rows = conn.execute(sql_text(
+				"""
+				SELECT id, name, classification FROM core_organization
+				ORDER BY id ASC
+				LIMIT :limit OFFSET :offset
+				"""
+			), {"limit": int(limit), "offset": int(offset)}).fetchall()
+			items = [
+				{
+					"id": int(r[0]),
+					"name": r[1],
+					"classification": r[2],
+				}
+				for r in rows
+			]
+		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
+	except HTTPException:
+		raise
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error listing committees: {e}")
+
+
+@router.get("/votes")
+async def list_votes(limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0)):
+	"""List votes (maps to bills_membervote in old schema)"""
+	try:
+		with _engine().connect() as conn:
+			rows = conn.execute(sql_text(
+				"""
+				SELECT id, bill_id, member_name, vote FROM bills_membervote
+				ORDER BY id DESC
+				LIMIT :limit OFFSET :offset
+				"""
+			), {"limit": int(limit), "offset": int(offset)}).fetchall()
+			items = [
+				{
+					"id": int(r[0]),
+					"bill_id": r[1],
+					"member": r[2],
+					"vote": r[3],
+				}
+				for r in rows
+			]
+		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
+	except HTTPException:
+		raise
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error listing votes: {e}")
