@@ -57,6 +57,15 @@ r = c.get('/api/v1/dashboard/system'); assert r.status_code == 200
 print('Smoke tests passed')
 PY
 
+      - name: Docker build backend
+        run: docker build -t openpolicy-backend:ci ./backend
+
+      - name: Compose up for smoke
+        run: |
+          docker compose up -d --build postgres api
+          sleep 15
+          bash scripts/smoke-test.sh
+
       - name: Upload OpenAPI artifact
         uses: actions/upload-artifact@v4
         with:

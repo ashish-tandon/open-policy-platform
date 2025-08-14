@@ -11,6 +11,12 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./backend/migrations/00-init-multi-db.sql:/docker-entrypoint-initdb.d/00-init-multi-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openpolicy -d openpolicy"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   api:
     build:
@@ -28,7 +34,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   web:
     working_dir: /app
@@ -46,6 +53,21 @@ services:
     image: redis:7-alpine
     ports:
       - "6379:6379"
+
+  scraper-runner:
+    build:
+      context: ./backend
+    command: ["python", "OpenPolicyAshBack/background_scraper_execution.py"]
+    environment:
+      - DATABASE_URL=postgresql://openpolicy:openpolicy123@postgres:5432/openpolicy_scrapers
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=openpolicy_scrapers
+      - DB_USER=openpolicy
+      - DB_PASSWORD=openpolicy123
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   prometheus:
     image: prom/prometheus:latest

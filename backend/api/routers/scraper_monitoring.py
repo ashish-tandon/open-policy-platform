@@ -99,17 +99,21 @@ async def get_system_health():
 async def get_data_collection_stats(request: Request):
     """Get data collection statistics"""
     try:
-        import subprocess
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT COUNT(*) FROM core_politician;",
-            "-t", "-A"
-        ], capture_output=True, text=True)
+        from sqlalchemy import text as sql_text
+        try:
+            from ...config.database import engine
+        except Exception:
+            from ..config import settings  # fallback
+            engine = None
         total_records = 0
-        if result.returncode == 0 and result.stdout.strip():
-            total_records = int(result.stdout.strip())
-        else:
-            logger.warning("DB count query failed: rc=%s err=%s", result.returncode, result.stderr)
+        if engine is not None:
+            try:
+                with engine.connect() as conn:
+                    row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;")).fetchone()
+                    if row and row[0] is not None:
+                        total_records = int(row[0])
+            except Exception as e:
+                logger.warning("DB count query failed: %s", e)
 
         reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
         today = datetime.now().strftime("%Y%m%d")
@@ -247,51 +251,41 @@ async def get_failure_analysis():
 async def get_database_status():
     """Get database status and record counts"""
     try:
-        import subprocess
-        
-        # Get table record counts
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", """
-            SELECT 
-                schemaname, 
-                tablename, 
-                n_tup_ins as inserts,
-                n_tup_upd as updates,
-                n_tup_del as deletes
-            FROM pg_stat_user_tables 
-            WHERE schemaname = 'public' 
-            ORDER BY n_tup_ins DESC 
-            LIMIT 20;
-            """,
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
+        from sqlalchemy import text as sql_text
+        try:
+            from ...config.database import engine
+        except Exception:
+            engine = None
         tables = []
-        if result.returncode == 0:
-            lines = result.stdout.strip().split('\n')
-            for line in lines:
-                if '|' in line:
-                    parts = line.split('|')
-                    if len(parts) >= 5:
-                        tables.append({
-                            "schema": parts[0].strip(),
-                            "table": parts[1].strip(),
-                            "inserts": int(parts[2].strip()) if parts[2].strip().isdigit() else 0,
-                            "updates": int(parts[3].strip()) if parts[3].strip().isdigit() else 0,
-                            "deletes": int(parts[4].strip()) if parts[4].strip().isdigit() else 0
-                        })
-        
-        # Get database size
-        size_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT pg_size_pretty(pg_database_size('openpolicy'));",
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
         db_size = "Unknown"
-        if size_result.returncode == 0 and size_result.stdout.strip():
-            db_size = size_result.stdout.strip()
+        if engine is not None:
+            try:
+                with engine.connect() as conn:
+                    rows = conn.execute(sql_text("""
+                        SELECT 
+                            table_schema as schemaname, 
+                            table_name as tablename,
+                            0 as inserts,
+                            0 as updates,
+                            0 as deletes
+                        FROM information_schema.tables
+                        WHERE table_schema = 'public'
+                        ORDER BY table_name ASC
+                        LIMIT 20;
+                    """)).fetchall()
+                    for r in rows:
+                        tables.append({
+                            "schema": r[0],
+                            "table": r[1],
+                            "inserts": 0,
+                            "updates": 0,
+                            "deletes": 0
+                        })
+                    size_row = conn.execute(sql_text("SELECT pg_size_pretty(pg_database_size(current_database()));")).fetchone()
+                    if size_row and size_row[0]:
+                        db_size = size_row[0]
+            except Exception as e:
+                logger.warning("DB table/size query failed: %s", e)
         
         return {
             "database_size": db_size,

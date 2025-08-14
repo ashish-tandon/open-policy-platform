@@ -20,6 +20,17 @@
 - Security: `SECRET_KEY`, `ALLOWED_ORIGINS`, `ALLOWED_HOSTS`
 - Frontend: `VITE_API_URL`
 
+## Scraper Runner
+- Use `backend/OpenPolicyAshBack/background_scraper_execution.py` in a dedicated container
+- Categories: federal (parliamentary), provincial, municipal (city), civic, update; schedule daily/weekly/monthly/continuous/one-time
+- Reports written as `scraper_test_report_*.json`; API reads from CWD
+
+## Ports (Single Source of Truth)
+- Postgres 5432, API 8000, Web 5173, Redis 6379, Prometheus 9090, Grafana 3000
+
+## Deployment Order
+- postgres -> api -> web; scraper-runner depends_on postgres healthy
+
 ## Checklists
 - Before commit: run `bash scripts/check-docs-links.sh` and export OpenAPI
 - On docs change: ensure links updated, schemas/endpoints consistent
@@ -36,5 +47,5 @@
 
 ## Build Parameters
 - OpenAPI export: `bash scripts/export-openapi.sh`
-- Docker build: `docker compose -f backend/docker-compose.yml up -d --build`
+- Docker build: `docker compose up -d --build`
 - Local dev: `./scripts/start-all.sh`
