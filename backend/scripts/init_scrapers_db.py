@@ -29,6 +29,15 @@ CREATE TABLE IF NOT EXISTS scraped_representatives (
     source TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS scraper_runs (
+    id SERIAL PRIMARY KEY,
+    category TEXT NOT NULL,
+    start_time TIMESTAMPTZ DEFAULT NOW(),
+    end_time TIMESTAMPTZ,
+    status TEXT NOT NULL,
+    records_collected INTEGER DEFAULT 0
+);
 """
 
 def main() -> int:

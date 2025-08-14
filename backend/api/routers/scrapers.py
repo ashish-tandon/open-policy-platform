@@ -11,6 +11,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from sqlalchemy import text as sql_text
 
 from ..dependencies import get_db, require_admin
 from ..config import settings
@@ -338,6 +339,28 @@ async def run_scrapers_by_category(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error executing category scrapers: {str(e)}")
+
+@router.post("/run/record/{category}")
+async def record_category_run(category: str):
+    """Record a category run in the scrapers DB (best-effort). Returns run_id."""
+    try:
+        try:
+            from ...config.database import scrapers_engine
+        except Exception:
+            scrapers_engine = None
+        run_id = None
+        if scrapers_engine is not None:
+            with scrapers_engine.begin() as conn:
+                row = conn.execute(sql_text(
+                    """
+                    INSERT INTO scraper_runs (category, status) VALUES (:cat, :st) RETURNING id
+                    """
+                ), {"cat": category, "st": "started"}).fetchone()
+                if row:
+                    run_id = int(row[0])
+        return {"category": category, "run_id": run_id}
+    except Exception as e:
+        return {"category": category, "run_id": None, "error": str(e)}
 
 @router.get("/performance")
 async def get_scraper_performance(db: Session = Depends(get_db)):
