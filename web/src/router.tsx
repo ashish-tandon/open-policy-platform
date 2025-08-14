@@ -22,6 +22,7 @@ import AdminPolicies from './pages/admin/policies';
 import AdminSystem from './pages/admin/system';
 import AdminLogin from './pages/admin/login';
 import AdminApiDocs from './pages/admin/api-docs';
+import AdminEntities from './pages/admin/entities';
 
 // Protected Route Component
 import ProtectedRoute from './components/shared/ProtectedRoute';
@@ -109,6 +110,10 @@ export const router = createBrowserRouter([
           {
             path: '/admin/scrapers',
             element: <AdminScrapers />,
+          },
+          {
+            path: '/admin/entities',
+            element: <AdminEntities />,
           },
           {
             path: '/admin/policies',

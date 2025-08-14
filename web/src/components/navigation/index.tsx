@@ -31,6 +31,10 @@ const navLinks = [
     label: "Admin",
     url: "/admin/scrapers",
   },
+  {
+    label: "Admin Entities",
+    url: "/admin/entities",
+  },
 ];
 
 const Navigation = () => {
