@@ -40,6 +40,17 @@ CREATE TABLE IF NOT EXISTS scraper_runs (
     status TEXT NOT NULL,
     records_collected INTEGER DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS scraper_attempts (
+    id SERIAL PRIMARY KEY,
+    run_id INTEGER NOT NULL REFERENCES scraper_runs(id) ON DELETE CASCADE,
+    scraper_name TEXT NOT NULL,
+    attempt_number INTEGER NOT NULL,
+    started_at TIMESTAMPTZ DEFAULT NOW(),
+    finished_at TIMESTAMPTZ,
+    status TEXT NOT NULL,
+    error_message TEXT
+);
 """
 
 def _get_env_url() -> Optional[str]:

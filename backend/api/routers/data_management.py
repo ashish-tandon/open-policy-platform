@@ -76,7 +76,7 @@ async def get_schema():
 
 @router.get("/tables", response_model=List[TableInfo])
 async def get_table_info():
-    """Get information about all tables in the database (public schema)"""
+    """Get information about all tables in the database"""
     try:
         try:
             from ...config.database import engine
@@ -86,22 +86,20 @@ async def get_table_info():
         with engine.connect() as conn:
             rows = conn.execute(sql_text(
                 """
-                SELECT c.relname AS table_name,
-                       COALESCE(s.n_live_tup, 0) AS record_count,
-                       pg_total_relation_size(c.oid) AS size_bytes
-                FROM pg_class c
-                JOIN pg_namespace n ON n.oid = c.relnamespace
-                LEFT JOIN pg_stat_user_tables s ON s.relname = c.relname
-                WHERE n.nspname = 'public' AND c.relkind = 'r'
-                ORDER BY c.relname
+                SELECT relname AS table_name,
+                       COALESCE(n_live_tup, 0) AS record_count,
+                       pg_total_relation_size(relid) AS size_bytes
+                FROM pg_stat_user_tables
+                ORDER BY n_live_tup DESC;
                 """
             )).fetchall()
             for r in rows:
-                size_mb = float(r[2] or 0) / (1024.0 * 1024.0)
+                size_bytes = int(r[2] or 0)
+                size_mb = round(size_bytes / (1024 * 1024), 2)
                 tables.append(TableInfo(
                     table_name=str(r[0]),
                     record_count=int(r[1] or 0),
-                    size_mb=round(size_mb, 2),
+                    size_mb=size_mb,
                     last_updated=datetime.now().isoformat()
                 ))
         return tables
@@ -127,10 +125,10 @@ async def get_table_records(
             from ...config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        query = sql_text(f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset")
         with engine.connect() as conn:
-            query = sql_text(f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset")
-            rows = conn.execute(query, {"limit": int(limit), "offset": int(offset)}).fetchall()
-            records = [list(row) for row in rows]
+            result = conn.execute(query, {"limit": int(limit), "offset": int(offset)})
+            records = [list(map(lambda v: None if v is None else str(v), row)) for row in result.fetchall()]
         return {
             "table_name": table_name,
             "records": records,
@@ -145,14 +143,16 @@ async def get_table_records(
 
 @router.post("/export")
 async def export_data(request: DataExportRequest, background_tasks: BackgroundTasks):
-    """Export data from a specific table (json/csv using SQLAlchemy; sql via pg_dump)"""
+    """Export data from a specific table"""
     try:
+        # Validate table name
         valid_tables = [
             'core_politician', 'bills_bill', 'hansards_statement',
             'bills_membervote', 'core_organization', 'core_membership'
         ]
         if request.table_name not in valid_tables:
             raise HTTPException(status_code=400, detail="Invalid table name")
+        # Add export task to background
         background_tasks.add_task(export_data_background, request)
         return {
             "message": "Export initiated",
@@ -178,14 +178,14 @@ async def analyze_politicians():
                     COUNT(*) as total_politicians,
                     COUNT(DISTINCT party_name) as total_parties,
                     COUNT(DISTINCT district) as total_districts
-                FROM core_politician
+                FROM core_politician;
                 """
             )).fetchone()
-            analysis = {
-                "total_politicians": int(row[0] or 0),
-                "total_parties": int(row[1] or 0),
-                "total_districts": int(row[2] or 0),
-            }
+        analysis = {
+            "total_politicians": int(row[0] or 0),
+            "total_parties": int(row[1] or 0),
+            "total_districts": int(row[2] or 0)
+        }
         return DataAnalysisResult(
             analysis_type="politicians",
             results=analysis,
@@ -211,14 +211,14 @@ async def analyze_bills():
                     COUNT(*) as total_bills,
                     COUNT(DISTINCT session) as total_sessions,
                     COUNT(DISTINCT classification) as total_classifications
-                FROM bills_bill
+                FROM bills_bill;
                 """
             )).fetchone()
-            analysis = {
-                "total_bills": int(row[0] or 0),
-                "total_sessions": int(row[1] or 0),
-                "total_classifications": int(row[2] or 0),
-            }
+        analysis = {
+            "total_bills": int(row[0] or 0),
+            "total_sessions": int(row[1] or 0),
+            "total_classifications": int(row[2] or 0)
+        }
         return DataAnalysisResult(
             analysis_type="bills",
             results=analysis,
@@ -244,14 +244,14 @@ async def analyze_hansards():
                     COUNT(*) as total_statements,
                     COUNT(DISTINCT speaker_name) as total_speakers,
                     COUNT(DISTINCT date) as total_dates
-                FROM hansards_statement
+                FROM hansards_statement;
                 """
             )).fetchone()
-            analysis = {
-                "total_statements": int(row[0] or 0),
-                "total_speakers": int(row[1] or 0),
-                "total_dates": int(row[2] or 0),
-            }
+        analysis = {
+            "total_statements": int(row[0] or 0),
+            "total_speakers": int(row[1] or 0),
+            "total_dates": int(row[2] or 0)
+        }
         return DataAnalysisResult(
             analysis_type="hansards",
             results=analysis,
@@ -270,44 +270,38 @@ async def search_data(
 ):
     """Search data across tables"""
     try:
+        # Validate table name
         valid_tables = [
             'core_politician', 'bills_bill', 'hansards_statement',
             'bills_membervote', 'core_organization', 'core_membership'
         ]
         if table_name not in valid_tables:
             raise HTTPException(status_code=400, detail="Invalid table name")
-        like_param = f"%{query}%"
-        if table_name == 'core_politician':
-            search_query = sql_text(
-                f"""
-                SELECT * FROM {table_name}
-                WHERE name ILIKE :q OR party_name ILIKE :q OR district ILIKE :q
-                LIMIT :limit
-                """
-            )
-        elif table_name == 'bills_bill':
-            search_query = sql_text(
-                f"""
-                SELECT * FROM {table_name}
-                WHERE title ILIKE :q OR classification ILIKE :q
-                LIMIT :limit
-                """
-            )
-        else:
-            search_query = sql_text(
-                f"""
-                SELECT * FROM {table_name}
-                WHERE CAST({"text" if table_name == 'hansards_statement' else 'id'} AS TEXT) ILIKE :q
-                LIMIT :limit
-                """
-            )
         try:
             from ...config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        if table_name == 'core_politician':
+            search_sql = f"""
+            SELECT * FROM {table_name} 
+            WHERE name ILIKE :q OR party_name ILIKE :q OR district ILIKE :q
+            LIMIT :limit
+            """
+        elif table_name == 'bills_bill':
+            search_sql = f"""
+            SELECT * FROM {table_name} 
+            WHERE title ILIKE :q OR classification ILIKE :q
+            LIMIT :limit
+            """
+        else:
+            search_sql = f"""
+            SELECT * FROM {table_name} 
+            WHERE CAST({table_name}.id AS TEXT) ILIKE :q
+            LIMIT :limit
+            """
         with engine.connect() as conn:
-            rows = conn.execute(search_query, {"q": like_param, "limit": int(limit)}).fetchall()
-            records = [list(r) for r in rows]
+            res = conn.execute(sql_text(search_sql), {"q": f"%{query}%", "limit": int(limit)})
+            records = [list(map(lambda v: None if v is None else str(v), row)) for row in res.fetchall()]
         return {
             "query": query,
             "table_name": table_name,
@@ -329,16 +323,26 @@ async def get_database_size():
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         with engine.connect() as conn:
-            size_row = conn.execute(sql_text("SELECT pg_size_pretty(pg_database_size(current_database()));")).fetchone()
-            total_size = size_row[0] if size_row and size_row[0] else "Unknown"
-            sizes = {"politicians_size": "Unknown", "bills_size": "Unknown", "hansards_size": "Unknown"}
-            for tbl, key in [("core_politician", "politicians_size"), ("bills_bill", "bills_size"), ("hansards_statement", "hansards_size")]:
-                row = conn.execute(sql_text("SELECT pg_size_pretty(pg_total_relation_size(:t));"), {"t": tbl}).fetchone()
-                if row and row[0]:
-                    sizes[key] = row[0]
+            row = conn.execute(sql_text(
+                "SELECT pg_size_pretty(pg_database_size(current_database()));"
+            )).fetchone()
+            total_size = row[0] if row and row[0] else "Unknown"
+            sizes = conn.execute(sql_text(
+                """
+                SELECT 
+                    'core_politician' as table, pg_size_pretty(pg_total_relation_size('core_politician')) as size
+                UNION ALL
+                SELECT 'bills_bill', pg_size_pretty(pg_total_relation_size('bills_bill'))
+                UNION ALL
+                SELECT 'hansards_statement', pg_size_pretty(pg_total_relation_size('hansards_statement'))
+                """
+            )).fetchall()
+            size_map = {str(r[0]): str(r[1]) for r in sizes}
         return {
             "total_size": total_size,
-            **sizes
+            "politicians_size": size_map.get('core_politician', '0'),
+            "bills_size": size_map.get('bills_bill', '0'),
+            "hansards_size": size_map.get('hansards_statement', '0')
         }
     except HTTPException:
         raise
@@ -346,66 +350,42 @@ async def get_database_size():
         raise HTTPException(status_code=500, detail=f"Error getting database size: {str(e)}")
 
 async def export_data_background(request: DataExportRequest):
-    """Background task to export data using SQLAlchemy (json/csv) or pg_dump for SQL"""
+    """Background task to export data (json/csv) via SQLAlchemy"""
     try:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        export_dir = os.path.join(os.getcwd(), "exports")
-        os.makedirs(export_dir, exist_ok=True)
-        export_file = os.path.join(export_dir, f"export_{request.table_name}_{timestamp}")
+        export_file = f"export_{request.table_name}_{timestamp}"
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            # Can't export without DB
+            return
+        with engine.connect() as conn:
+            res = conn.execute(sql_text(f"SELECT * FROM {request.table_name}"))
+            rows = res.fetchall()
+            headers = res.keys()
         if request.format == "csv":
             export_file += ".csv"
-            try:
-                from ...config.database import engine
-            except Exception:
-                engine = None
-            if engine is None:
-                return
-            with engine.connect() as conn:
-                rows = conn.execute(sql_text(f"SELECT * FROM {request.table_name} LIMIT :limit"), {"limit": int(request.limit or 100000)}).fetchall()
-                if rows:
-                    with open(export_file, 'w', newline='') as f:
-                        writer = csv.writer(f)
-                        writer.writerow(rows[0].keys())
-                        for row in rows:
-                            writer.writerow(list(row))
-        elif request.format == "json":
+            with open(export_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(list(headers))
+                for row in rows:
+                    writer.writerow([None if v is None else v for v in row])
+        else:  # json (default)
             export_file += ".json"
-            try:
-                from ...config.database import engine
-            except Exception:
-                engine = None
-            if engine is None:
-                return
-            with engine.connect() as conn:
-                rows = conn.execute(sql_text(f"SELECT * FROM {request.table_name} LIMIT :limit"), {"limit": int(request.limit or 100000)}).fetchall()
-                data = [dict(row._mapping) for row in rows]
-                with open(export_file, 'w') as f:
-                    json.dump(data, f)
-        else:  # sql via pg_dump (requires client inside image)
-            export_file += ".sql"
-            db_url = os.getenv("APP_DATABASE_URL") or os.getenv("DATABASE_URL")
-            if not db_url:
-                # Attempt to construct from parts
-                host = os.getenv("DB_HOST", "localhost")
-                port = os.getenv("DB_PORT", "5432")
-                name = os.getenv("DB_NAME", "openpolicy")
-                user = os.getenv("DB_USER", os.getenv("DB_USERNAME", "postgres"))
-                db_url = f"postgresql://{user}@{host}:{port}/{name}"
-            # Fallback to pg_dump if available
-            try:
-                subprocess.run([
-                    "pg_dump", db_url, "-t", request.table_name, "-f", export_file
-                ], capture_output=True, text=True, timeout=300)
-            except Exception:
-                pass
-        # Log a simple marker file
-        with open(os.path.join(export_dir, f"export_log_{timestamp}.log"), 'w') as f:
-            f.write(f"Exported {request.table_name} as {request.format} -> {export_file}\n")
+            dict_rows = [dict(zip(headers, row)) for row in rows]
+            with open(export_file, 'w') as f:
+                json.dump(dict_rows, f)
+        # Simple log
+        log_file = f"export_log_{timestamp}.log"
+        with open(log_file, 'w') as f:
+            f.write(f"Export: {request.table_name}\n")
+            f.write(f"Format: {request.format}\n")
+            f.write(f"File: {export_file}\n")
     except Exception as e:
+        # Log error
         try:
-            export_dir = os.path.join(os.getcwd(), "exports")
-            os.makedirs(export_dir, exist_ok=True)
-            with open(os.path.join(export_dir, f"export_error_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"), 'w') as f:
+            error_log = f"export_error_{timestamp}.log"
+            with open(error_log, 'w') as f:
                 f.write(f"Error exporting {request.table_name}: {str(e)}\n")
         except Exception:
             pass

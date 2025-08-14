@@ -87,6 +87,20 @@ const AdminScrapers: React.FC = () => {
 		}
 	};
 
+	const handleRunFull = async () => {
+		setRunning(true);
+		setMessage(null);
+		try {
+			await api.post(`/api/v1/scrapers/run/full/${runCategory}`, null, { params: { retries: 2, max_records: 10 } });
+			setMessage(`Triggered full runner for ${runCategory}`);
+			setTimeout(refresh, 3000);
+		} catch (e: any) {
+			setMessage(e?.message || 'Failed to trigger full runner');
+		} finally {
+			setRunning(false);
+		}
+	};
+
 	return (
 		<div className="min-h-screen bg-gray-100 p-8">
 			<h1 className="text-2xl font-bold mb-6">Scrapers Management</h1>
@@ -106,6 +120,9 @@ const AdminScrapers: React.FC = () => {
 							</select>
 							<button disabled={running} onClick={handleRunCategory} className="bg-blue-600 text-white px-3 py-1 rounded">
 								{running ? 'Running…' : 'Run Category'}
+							</button>
+							<button disabled={running} onClick={handleRunFull} className="bg-emerald-600 text-white px-3 py-1 rounded">
+								{running ? 'Running…' : 'Run Full (Retries)'}
 							</button>
 						</div>
 						{message && <div className="text-sm text-gray-600">{message}</div>}
