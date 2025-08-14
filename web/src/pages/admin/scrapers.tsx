@@ -13,6 +13,15 @@ type Scraper = {
 
 type CategoriesSummary = Record<string, { count: number; active: number; success_rate: number }>;
 
+type Summary = {
+	timestamp: string;
+	total_scrapers: number;
+	successful: number;
+	failed: number;
+	success_rate: number;
+	total_records: number;
+} | null;
+
 const AdminScrapers: React.FC = () => {
 	const [scrapers, setScrapers] = useState<Scraper[]>([]);
 	const [categories, setCategories] = useState<CategoriesSummary>({});
@@ -21,14 +30,17 @@ const AdminScrapers: React.FC = () => {
 	const [runCategory, setRunCategory] = useState<string>('parliamentary');
 	const [running, setRunning] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
+	const [summary, setSummary] = useState<Summary>(null);
 
 	const refresh = async () => {
-		const [statusRes, catRes] = await Promise.all([
+		const [statusRes, catRes, sumRes] = await Promise.all([
 			api.get('/api/v1/scrapers'),
 			api.get('/api/v1/scrapers/categories'),
+			api.get('/api/v1/scrapers/summary').catch(() => ({ data: null })),
 		]);
 		setScrapers(statusRes.data.scrapers || []);
 		setCategories(catRes.data.categories || {});
+		setSummary(sumRes.data || null);
 	};
 
 	useEffect(() => {
@@ -93,6 +105,14 @@ const AdminScrapers: React.FC = () => {
 								</li>
 							))}
 						</ul>
+						{summary && (
+							<div className="mt-4 text-sm">
+								<h3 className="font-semibold mb-1">Latest Summary</h3>
+								<div>Total: {summary.total_scrapers}, Success: {summary.successful}, Failed: {summary.failed}</div>
+								<div>Success Rate: {summary.success_rate}% | Records: {summary.total_records}</div>
+								<div>Timestamp: {summary.timestamp}</div>
+							</div>
+						)}
 					</div>
 					<div className="bg-white rounded-lg shadow p-6 md:col-span-2">
 						<h2 className="font-semibold mb-2">Scrapers</h2>
