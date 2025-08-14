@@ -11,6 +11,7 @@ import os
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 import logging
+from sqlalchemy import text as sql_text
 
 router = APIRouter(prefix="/api/v1/scrapers", tags=["scraper-monitoring"])
 logger = logging.getLogger("openpolicy.api.scrapers")
@@ -38,6 +39,48 @@ class DataCollectionStats(BaseModel):
     success_rate: float
     active_scrapers: int
     failed_scrapers: int
+
+class ScraperSummary(BaseModel):
+    timestamp: str
+    total_scrapers: int
+    successful: int
+    failed: int
+    success_rate: float
+    total_records: int
+
+@router.get("/summary", response_model=Optional[ScraperSummary])
+async def get_latest_summary():
+    """Return the latest scraper summary from scrapers DB if table exists."""
+    try:
+        try:
+            from ...config.database import scrapers_engine
+        except Exception:
+            scrapers_engine = None
+        if scrapers_engine is None:
+            return None
+        with scrapers_engine.connect() as conn:
+            row = conn.execute(sql_text(
+                """
+                SELECT timestamp, total_scrapers, successful, failed, success_rate, total_records
+                FROM scraper_results
+                ORDER BY id DESC
+                LIMIT 1
+                """
+            )).fetchone()
+            if not row:
+                return None
+            return ScraperSummary(
+                timestamp=str(row[0]),
+                total_scrapers=int(row[1] or 0),
+                successful=int(row[2] or 0),
+                failed=int(row[3] or 0),
+                success_rate=float(row[4] or 0.0),
+                total_records=int(row[5] or 0),
+            )
+    except Exception as e:
+        # Table may not exist yet; return None without throwing
+        logger.info("No scraper summary available: %s", e)
+        return None
 
 class ScraperRunRequest(BaseModel):
     category: Optional[str] = None
@@ -99,7 +142,6 @@ async def get_system_health():
 async def get_data_collection_stats(request: Request):
     """Get data collection statistics"""
     try:
-        from sqlalchemy import text as sql_text
         try:
             from backend.config.database import engine
         except Exception:
@@ -251,7 +293,6 @@ async def get_failure_analysis():
 async def get_database_status():
     """Get database status and record counts"""
     try:
-        from sqlalchemy import text as sql_text
         try:
             from backend.config.database import engine
         except Exception:
