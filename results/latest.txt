@@ -1,11 +1,11 @@
-=== Thu Aug 14 11:02:06 EDT 2025 - pulling updates ===
-HEAD is now at 6ce9b6e7 feat(scrapers): add /api/v1/scrapers/summary to expose latest summary from scrapers DB if present
+=== Thu Aug 14 12:10:42 EDT 2025 - pulling updates ===
+HEAD is now at 71577737 feat(admin): show latest scrapers summary on Admin Scrapers page
 === rebuild and up core ===
 #1 [internal] load local bake definitions
 #1 reading from stdin 1.23kB done
 #1 DONE 0.0s
 
-#2 [scraper-runner internal] load build definition from Dockerfile
+#2 [api internal] load build definition from Dockerfile
 #2 transferring dockerfile: 1.17kB done
 #2 DONE 0.0s
 
@@ -13,39 +13,36 @@ HEAD is now at 6ce9b6e7 feat(scrapers): add /api/v1/scrapers/summary to expose l
 #3 transferring dockerfile: 343B done
 #3 DONE 0.0s
 
-#4 [auth] library/node:pull token for registry-1.docker.io
+#4 [auth] library/python:pull token for registry-1.docker.io
 #4 DONE 0.0s
 
-#5 [auth] library/python:pull token for registry-1.docker.io
+#5 [auth] library/node:pull token for registry-1.docker.io
 #5 DONE 0.0s
 
-#6 [scraper-runner internal] load metadata for docker.io/library/python:3.11-slim
-#6 ...
+#6 [api internal] load metadata for docker.io/library/python:3.11-slim
+#6 DONE 0.4s
 
 #7 [web internal] load metadata for docker.io/library/node:20-alpine
-#7 DONE 0.3s
+#7 DONE 0.4s
 
-#6 [api internal] load metadata for docker.io/library/python:3.11-slim
-#6 DONE 0.3s
-
-#8 [web internal] load .dockerignore
+#8 [scraper-runner internal] load .dockerignore
 #8 transferring context: 2B done
 #8 DONE 0.0s
 
-#9 [scraper-runner internal] load .dockerignore
+#9 [web internal] load .dockerignore
 #9 transferring context: 2B done
 #9 DONE 0.0s
 
-#10 [web 1/5] FROM docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765f72bb262799
-#10 resolve docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765f72bb262799 done
+#10 [web internal] load build context
+#10 transferring context: 7.79kB done
 #10 DONE 0.0s
 
-#11 [web internal] load build context
-#11 transferring context: 7.79kB done
+#11 [web 1/5] FROM docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765f72bb262799
+#11 resolve docker.io/library/node:20-alpine@sha256:df02558528d3d3d0d621f112e232611aecfee7cbc654f6b375765f72bb262799 0.0s done
 #11 DONE 0.0s
 
 #12 [api 1/8] FROM docker.io/library/python:3.11-slim@sha256:9e885f8239c31f8429448f933638dd13037c9119e2a362aeebdd37ec3bee7c85
-#12 resolve docker.io/library/python:3.11-slim@sha256:9e885f8239c31f8429448f933638dd13037c9119e2a362aeebdd37ec3bee7c85 done
+#12 resolve docker.io/library/python:3.11-slim@sha256:9e885f8239c31f8429448f933638dd13037c9119e2a362aeebdd37ec3bee7c85 0.0s done
 #12 DONE 0.0s
 
 #13 [web 2/5] WORKDIR /app
@@ -60,81 +57,79 @@ HEAD is now at 6ce9b6e7 feat(scrapers): add /api/v1/scrapers/summary to expose l
 #16 [web 5/5] COPY . .
 #16 CACHED
 
-#17 [api internal] load build context
-#17 transferring context: 2.91MB 0.8s done
-#17 transferring context: 2.91MB 0.8s done
-#17 DONE 0.8s
+#17 [web] exporting to oci image format
+#17 exporting layers done
+#17 exporting manifest sha256:aa3989b433a4baf154b77c347d435de4338a131ac3bff13073270b69d651600c done
+#17 exporting config sha256:f11df731fcde51a38e4e1d97b4f19fa4aa94d06ba0ef3e814cdd52b410d15353 done
+#17 sending tarball
+#17 ...
 
-#18 [scraper-runner 3/8] RUN apt-get update && apt-get install -y     postgresql-client     curl     wget     build-essential     gcc     python3-dev     && rm -rf /var/lib/apt/lists/*
-#18 CACHED
+#18 [scraper-runner internal] load build context
+#18 transferring context: 2.89MB 0.7s done
+#18 DONE 0.7s
 
-#19 [scraper-runner 2/8] WORKDIR /app
+#19 [api 6/8] COPY . .
 #19 CACHED
 
-#20 [scraper-runner 4/8] COPY requirements.txt .
+#20 [api 2/8] WORKDIR /app
 #20 CACHED
 
-#21 [scraper-runner 5/8] RUN pip install --no-cache-dir -r requirements.txt
+#21 [api 4/8] COPY requirements.txt .
 #21 CACHED
 
-#22 [api 6/8] COPY . .
-#22 ...
+#22 [api 7/8] RUN mkdir -p logs data migrations
+#22 CACHED
 
-#23 [web] exporting to oci image format
-#23 exporting layers done
-#23 exporting manifest sha256:5f08d840e3eb359f93cb52ea3353cd979ed307ffee711d0e748b1da5fa34cd93 done
-#23 exporting config sha256:dbd6609a30ac36991a77c28efc5e1a513939911ee6cedd38e6bea449a58e1568 done
-#23 sending tarball 1.5s done
-#23 DONE 1.5s
+#23 [api 3/8] RUN apt-get update && apt-get install -y     postgresql-client     curl     wget     build-essential     gcc     python3-dev     && rm -rf /var/lib/apt/lists/*
+#23 CACHED
 
-#24 importing to docker
-#24 DONE 0.0s
+#24 [api 5/8] RUN pip install --no-cache-dir -r requirements.txt
+#24 CACHED
 
-#25 [web] resolving provenance for metadata file
-#25 DONE 0.0s
+#25 [api 8/8] RUN useradd --create-home --shell /bin/bash openpolicy &&     chown -R openpolicy:openpolicy /app
+#25 CACHED
 
-#22 [api 6/8] COPY . .
-#22 DONE 3.2s
+#26 [api] exporting to oci image format
+#26 exporting layers done
+#26 exporting manifest sha256:1d9b2f222a24298113975ad4b0d9a97f38c01d44a689478476cf23b8d95820bb done
+#26 exporting config sha256:39764469439e66442673cb52726d8e35e7545274caca8d5380c84a9c1230347c done
+#26 ...
 
-#26 [scraper-runner 7/8] RUN mkdir -p logs data migrations
-#26 DONE 0.2s
+#17 [web] exporting to oci image format
+#17 sending tarball 5.2s done
+#17 DONE 5.2s
 
-#27 [api 8/8] RUN useradd --create-home --shell /bin/bash openpolicy &&     chown -R openpolicy:openpolicy /app
-#27 DONE 11.4s
+#27 importing to docker
+#27 DONE 0.1s
 
-#28 [scraper-runner] exporting to oci image format
-#28 exporting layers
-#28 exporting layers 7.5s done
-#28 exporting manifest sha256:605a4fd640155c720fe2f3d96739cba349d26fe0376c740eb23cc2e481bddd03 done
-#28 exporting config sha256:700dcefcf8a3ef5e489fc31c65b4da59ce3b4cb7400df52da85e1bb3047aedb1 done
-#28 sending tarball
-#28 ...
+#28 [web] resolving provenance for metadata file
+#28 DONE 0.0s
 
-#29 [api] exporting to oci image format
-#29 exporting layers 7.5s done
-#29 exporting manifest sha256:605a4fd640155c720fe2f3d96739cba349d26fe0376c740eb23cc2e481bddd03 0.0s done
-#29 exporting config sha256:700dcefcf8a3ef5e489fc31c65b4da59ce3b4cb7400df52da85e1bb3047aedb1 done
+#29 [scraper-runner] exporting to oci image format
+#29 exporting layers done
+#29 exporting manifest sha256:1d9b2f222a24298113975ad4b0d9a97f38c01d44a689478476cf23b8d95820bb done
+#29 exporting config sha256:39764469439e66442673cb52726d8e35e7545274caca8d5380c84a9c1230347c done
 #29 ...
 
 #30 importing to docker
 #30 DONE 0.0s
 
-#28 [scraper-runner] exporting to oci image format
-#28 sending tarball 11.0s done
-#28 DONE 18.5s
+#29 [scraper-runner] exporting to oci image format
+#29 sending tarball 7.7s done
+#29 DONE 7.8s
 
 #31 [scraper-runner] resolving provenance for metadata file
 #31 DONE 0.0s
 
-#29 [api] exporting to oci image format
-#29 ...
+#26 [api] exporting to oci image format
+#26 ...
 
 #32 importing to docker
 #32 DONE 0.0s
 
-#29 [api] exporting to oci image format
-#29 sending tarball 11.5s done
-#29 DONE 19.0s
+#26 [api] exporting to oci image format
+#26 sending tarball 8.7s done
+#26 DONE 8.7s
 
 #33 [api] resolving provenance for metadata file
 #33 DONE 0.0s
