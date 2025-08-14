@@ -42,37 +42,38 @@ class DataAnalysisResult(BaseModel):
 
 @router.get("/schema", response_model=Dict[str, List[ColumnInfo]])
 async def get_schema():
-    """Introspect current database schema (public schema) via SQLAlchemy."""
+    """Introspect current database schema (public schema). Returns empty map if unavailable."""
     try:
         try:
             from ...config.database import engine
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        except Exception:
+            return {}
         schema: Dict[str, List[ColumnInfo]] = {}
-        with engine.connect() as conn:
-            rows = conn.execute(sql_text(
-                """
-                SELECT table_name, column_name, data_type, is_nullable
-                FROM information_schema.columns
-                WHERE table_schema = 'public'
-                ORDER BY table_name, ordinal_position
-                """
-            )).fetchall()
-            for r in rows:
-                t = r[0]
-                if t not in schema:
-                    schema[t] = []
-                schema[t].append(ColumnInfo(
-                    table_name=t,
-                    column_name=str(r[1]),
-                    data_type=str(r[2]),
-                    is_nullable=(str(r[3]).upper() == 'YES')
-                ))
+        try:
+            with engine.connect() as conn:
+                rows = conn.execute(sql_text(
+                    """
+                    SELECT table_name, column_name, data_type, is_nullable
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                    ORDER BY table_name, ordinal_position
+                    """
+                )).fetchall()
+        except Exception:
+            return {}
+        for r in rows:
+            t = r[0]
+            if t not in schema:
+                schema[t] = []
+            schema[t].append(ColumnInfo(
+                table_name=t,
+                column_name=str(r[1]),
+                data_type=str(r[2]),
+                is_nullable=(str(r[3]).upper() == 'YES')
+            ))
         return schema
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error introspecting schema: {str(e)}")
+    except Exception:
+        return {}
 
 @router.get("/tables", response_model=List[TableInfo])
 async def get_table_info():
