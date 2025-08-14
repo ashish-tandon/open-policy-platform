@@ -96,7 +96,7 @@ class ScraperRunRequest(BaseModel):
 	force_run: bool = False
 
 @router.get("/runs", response_model=List[ScraperRun])
-async def list_runs(category: Optional[str] = None, limit: int = 20):
+async def list_runs(category: Optional[str] = None, status: Optional[str] = None, limit: int = 20):
 	"""List recent scraper runs from scrapers DB"""
 	try:
 		try:
@@ -112,11 +112,15 @@ async def list_runs(category: Optional[str] = None, limit: int = 20):
 			ORDER BY id DESC
 			LIMIT :limit
 		"""
-		where_clause = ""
+		clauses = []
 		params: Dict[str, Any] = {"limit": int(limit)}
 		if category:
-			where_clause = "WHERE category = :category"
+			clauses.append("category = :category")
 			params["category"] = category
+		if status:
+			clauses.append("status = :status")
+			params["status"] = status
+		where_clause = ("WHERE " + " AND ".join(clauses)) if clauses else ""
 		with scrapers_engine.connect() as conn:
 			rows = conn.execute(sql_text(query.format(where=where_clause)), params).fetchall()
 			return [
