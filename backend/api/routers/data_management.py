@@ -11,6 +11,7 @@ import csv
 import io
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from sqlalchemy import text as sql_text
 
 router = APIRouter(prefix="/api/v1/data", tags=["data-management"])
 
@@ -20,6 +21,12 @@ class TableInfo(BaseModel):
     record_count: int
     size_mb: float
     last_updated: Optional[str]
+
+class ColumnInfo(BaseModel):
+    table_name: str
+    column_name: str
+    data_type: str
+    is_nullable: bool
 
 class DataExportRequest(BaseModel):
     table_name: str
@@ -31,6 +38,40 @@ class DataAnalysisResult(BaseModel):
     analysis_type: str
     results: Dict[str, Any]
     timestamp: str
+
+@router.get("/schema", response_model=Dict[str, List[ColumnInfo]])
+async def get_schema():
+    """Introspect current database schema (public schema) via SQLAlchemy."""
+    try:
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        schema: Dict[str, List[ColumnInfo]] = {}
+        with engine.connect() as conn:
+            rows = conn.execute(sql_text(
+                """
+                SELECT table_name, column_name, data_type, is_nullable
+                FROM information_schema.columns
+                WHERE table_schema = 'public'
+                ORDER BY table_name, ordinal_position
+                """
+            )).fetchall()
+            for r in rows:
+                t = r[0]
+                if t not in schema:
+                    schema[t] = []
+                schema[t].append(ColumnInfo(
+                    table_name=t,
+                    column_name=str(r[1]),
+                    data_type=str(r[2]),
+                    is_nullable=(str(r[3]).upper() == 'YES')
+                ))
+        return schema
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error introspecting schema: {str(e)}")
 
 @router.get("/tables", response_model=List[TableInfo])
 async def get_table_info():
