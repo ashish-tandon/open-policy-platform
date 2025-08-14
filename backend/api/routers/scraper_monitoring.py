@@ -300,8 +300,11 @@ async def run_scraper_background(request: ScraperRunRequest):
     try:
         import subprocess
         
+        framework_path = os.path.join(os.getcwd(), "OpenPolicyAshBack", "scraper_testing_framework.py")
+        if not os.path.exists(framework_path):
+            framework_path = "scraper_testing_framework.py"
         cmd = [
-            "python", "scraper_testing_framework.py",
+            "python", framework_path,
             "--max-sample-records", str(request.max_records),
             "--verbose"
         ]
