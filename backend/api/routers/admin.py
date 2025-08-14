@@ -563,3 +563,26 @@ async def create_backup(backup_request: SystemBackupRequest):
         error_log = f"backup_error_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         with open(error_log, 'w') as f:
             f.write(f"Error during backup: {str(e)}\n")
+
+@router.get("/workers/ping")
+async def workers_ping(current_user = Depends(require_admin)):
+	try:
+		from ..celery_app import ping as celery_ping
+		res = celery_ping.delay()
+		return {"task_id": res.id}
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Celery ping failed: {e}")
+
+@router.get("/workers/status")
+async def workers_status(current_user = Depends(require_admin)):
+	try:
+		from celery.app.control import Inspect
+		from ..celery_app import celery_app
+		insp = Inspect(app=celery_app)
+		return {
+			"active": insp.active() or {},
+			"registered": insp.registered() or {},
+			"scheduled": insp.scheduled() or {},
+		}
+	except Exception as e:
+		return {"error": str(e)}
