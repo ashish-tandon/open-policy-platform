@@ -31,6 +31,16 @@ type Run = {
 	records_collected: number;
 };
 
+type Attempt = {
+	id: number;
+	scraper_name: string;
+	attempt_number: number;
+	started_at?: string | null;
+	finished_at?: string | null;
+	status: string;
+	error_message?: string | null;
+};
+
 const AdminScrapers: React.FC = () => {
 	const [scrapers, setScrapers] = useState<Scraper[]>([]);
 	const [categories, setCategories] = useState<CategoriesSummary>({});
@@ -41,6 +51,22 @@ const AdminScrapers: React.FC = () => {
 	const [message, setMessage] = useState<string | null>(null);
 	const [summary, setSummary] = useState<Summary>(null);
 	const [runs, setRuns] = useState<Run[]>([]);
+	const [latestRunId, setLatestRunId] = useState<number | null>(null);
+	const [attempts, setAttempts] = useState<Attempt[]>([]);
+
+	const fetchLatestAttempts = async () => {
+		try {
+			const latest = await api.get('/api/v1/scrapers/runs/latest');
+			const run = latest.data;
+			if (run && run.id) {
+				setLatestRunId(run.id);
+				const at = await api.get(`/api/v1/scrapers/runs/${run.id}/attempts`);
+				setAttempts((at.data?.attempts as Attempt[]) || []);
+			}
+		} catch {
+			setAttempts([]);
+		}
+	};
 
 	const refresh = async () => {
 		const [statusRes, catRes, sumRes, runsRes] = await Promise.all([
@@ -53,6 +79,7 @@ const AdminScrapers: React.FC = () => {
 		setCategories(catRes.data.categories || {});
 		setSummary(sumRes.data || null);
 		setRuns(runsRes.data || []);
+		await fetchLatestAttempts();
 	};
 
 	useEffect(() => {
@@ -201,6 +228,37 @@ const AdminScrapers: React.FC = () => {
 									</tbody>
 								</table>
 							</div>
+							{attempts.length > 0 && (
+								<div className="mt-4">
+									<h3 className="font-semibold mb-1">Latest Run Attempts (Run {latestRunId})</h3>
+									<div className="overflow-auto">
+										<table className="min-w-full text-sm">
+											<thead>
+												<tr className="text-left border-b">
+													<th className="py-2 pr-4">Scraper</th>
+													<th className="py-2 pr-4">Attempt</th>
+													<th className="py-2 pr-4">Status</th>
+													<th className="py-2 pr-4">Started</th>
+													<th className="py-2 pr-4">Finished</th>
+													<th className="py-2 pr-4">Error</th>
+												</tr>
+											</thead>
+											<tbody>
+												{attempts.map((a) => (
+													<tr key={a.id} className="border-b">
+														<td className="py-2 pr-4">{a.scraper_name}</td>
+														<td className="py-2 pr-4">{a.attempt_number}</td>
+														<td className="py-2 pr-4">{a.status}</td>
+														<td className="py-2 pr-4">{a.started_at || '-'}</td>
+														<td className="py-2 pr-4">{a.finished_at || '-'}</td>
+														<td className="py-2 pr-4">{a.error_message || '-'}</td>
+													</tr>
+												))}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							)}
 						</div>
 					</div>
 			)}
