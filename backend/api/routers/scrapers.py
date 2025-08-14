@@ -362,6 +362,26 @@ async def record_category_run(category: str):
     except Exception as e:
         return {"category": category, "run_id": None, "error": str(e)}
 
+@router.post("/run/dev/{category}")
+async def run_category_dev(category: str):
+    """Trigger the dev category runner: records run, executes scanner, updates run."""
+    try:
+        cmd = [
+            "python",
+            "backend/scripts/run_category.py",
+            "--category",
+            category,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        return {
+            "category": category,
+            "returncode": result.returncode,
+            "stdout": result.stdout[-500:],
+            "stderr": result.stderr[-500:],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running dev category: {e}")
+
 @router.get("/performance")
 async def get_scraper_performance(db: Session = Depends(get_db)):
     """Get overall scraper performance metrics"""
