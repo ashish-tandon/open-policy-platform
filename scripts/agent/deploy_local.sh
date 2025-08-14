@@ -1,22 +1,39 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_URL=${API_URL:-http://localhost:8000}
-WEB_URL=${WEB_URL:-http://localhost:5173}
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../.. && pwd)"
+cd "$ROOT_DIR"
 
-test -f .env || cp env.example .env
-
-# Optional: set a SECRET_KEY if not present
-if ! grep -q '^SECRET_KEY=' .env 2>/dev/null; then
-  echo "SECRET_KEY=$(openssl rand -hex 32)" >> .env || true
+# Prepare env
+if [[ ! -f .env ]]; then
+	cp env.example .env
+fi
+# Ensure SECRET_KEY exists to avoid warnings
+if ! grep -q '^SECRET_KEY=' .env; then
+	SECRET=$(openssl rand -hex 32 2>/dev/null || echo "dev-secret-key")
+	echo "SECRET_KEY=$SECRET" >> .env
 fi
 
-DOCKER_BUILDKIT=1 docker compose up -d --build postgres api web scraper-runner
+export COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1
+# Core services only to keep dev lean
+services=(postgres api web scraper-runner)
 
-sleep 5
-bash scripts/smoke-test.sh
+docker compose up -d --build "${services[@]}"
 
-echo "Deployment complete:"
-echo "- API: $API_URL"
-echo "- WEB: $WEB_URL"
+# Wait for API health
+printf "Waiting for API health"
+for i in $(seq 1 60); do
+	if curl -fsS http://localhost:8000/api/v1/health >/dev/null; then
+		echo -e "\nAPI is healthy"
+		break
+	fi
+	printf "."; sleep 2
+	if [[ $i -eq 60 ]]; then echo "\nTimed out waiting for API" && exit 1; fi
+done
+
+# Smoke test
+bash scripts/smoke-test.sh || true
+
+echo "Container status:"
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
 

@@ -1,36 +1,21 @@
-Agent runbook
-==============
+# Agent Scripts
 
-Purpose: Provide one-command flows for the online agent to deploy, validate, and operate the stack using admin endpoints.
+One-command local workflows for the core stack and optional profiles.
 
-Primary commands
-----------------
-
-1) Deploy core services (API, Web, Postgres) and run smoke test:
-
-```
+## Deploy core stack and run smoke test
+```bash
 bash scripts/agent/deploy_local.sh
 ```
 
-2) Enable workers profile, then inspect worker status via admin endpoints:
-
-```
+## Enable workers profile and validate
+```bash
 bash scripts/agent/enable_workers.sh
 bash scripts/agent/check_status.sh
 ```
 
-Endpoints used
---------------
-- API health: GET http://localhost:8000/api/v1/health
-- Detailed health: GET http://localhost:8000/api/v1/health/detailed
-- Workers ping: POST http://localhost:8000/api/v1/admin/workers/ping
-- Workers status: GET http://localhost:8000/api/v1/admin/workers/status
-
-Environment variables
----------------------
-- API_URL (default http://localhost:8000)
-- WEB_URL (default http://localhost:5173)
-- DB_HOST (default localhost)
-- DB_PORT (default 5432)
+## Notes
+- Docker Desktop must be running
+- `.env` is auto-created; a `SECRET_KEY` is generated if missing
+- Profiles (opt-in): `workers` (celery/flower), `ops` (prom/grafana), `gateway` (nginx)
 
 
