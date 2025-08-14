@@ -145,6 +145,7 @@ def main() -> int:
 					if attempt > args.retries:
 						status = "failed"
 						break
+					else:
 						time.sleep(exponential_backoff(attempt))
 	finally:
 		record_run_end(engine, run_id, status, total_records)

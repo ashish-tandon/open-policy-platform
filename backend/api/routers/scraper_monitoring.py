@@ -208,6 +208,41 @@ async def get_run(run_id: int):
 		logger.warning("Error fetching run %s: %s", run_id, e)
 		return None
 
+@router.get("/runs/{run_id}/attempts")
+async def list_run_attempts(run_id: int):
+	"""List attempts for a run id (if attempts table exists)"""
+	try:
+		try:
+			from ...config.database import scrapers_engine
+		except Exception:
+			scrapers_engine = None
+		if scrapers_engine is None:
+			return {"attempts": []}
+		with scrapers_engine.connect() as conn:
+			rows = conn.execute(sql_text(
+				"""
+				SELECT id, scraper_name, attempt_number, started_at, finished_at, status, error_message
+				FROM scraper_attempts
+				WHERE run_id = :rid
+				ORDER BY attempt_number ASC
+				"""
+			), {"rid": int(run_id)}).fetchall()
+			attempts = []
+			for r in rows:
+				attempts.append({
+					"id": int(r[0]),
+					"scraper_name": str(r[1]),
+					"attempt_number": int(r[2]),
+					"started_at": str(r[3]) if r[3] else None,
+					"finished_at": str(r[4]) if r[4] else None,
+					"status": str(r[5]),
+					"error_message": str(r[6]) if r[6] else None,
+				})
+			return {"attempts": attempts}
+	except Exception as e:
+		logger.warning("Error listing attempts for run %s: %s", run_id, e)
+		return {"attempts": []}
+
 @router.get("/status", response_model=List[ScraperStatus])
 async def get_scraper_status(request: Request):
 	"""Get comprehensive status of all scrapers"""

@@ -15,6 +15,7 @@ import os
 from .routers import policies, scrapers, admin, auth, health, scraper_monitoring, data_management, dashboard
 from .routers import metrics as metrics_router
 from .routers import mobile as mobile_router
+from .routers import entities as entities_router
 
 # Import middleware
 from .middleware.performance import PerformanceMiddleware
@@ -129,6 +130,7 @@ def create_app() -> FastAPI:
     app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
     app.include_router(metrics_router.router, tags=["Metrics"])  # /metrics
     app.include_router(mobile_router.router, prefix="/api/v1/mobile", tags=["Mobile"])
+    app.include_router(entities_router.router)  # /api/v1/entities
 
     @app.get("/")
     async def root():
