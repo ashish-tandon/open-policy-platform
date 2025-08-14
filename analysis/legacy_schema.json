@@ -1,3 +1,4644 @@
 {
-  "tables": []
+  "tables": [
+    {
+      "schema": "public",
+      "table": "accounts_logintoken",
+      "columns": [
+        {
+          "name": "token",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "email",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "requesting_ip",
+          "data_type": "inet",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "used",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "login_ip",
+          "data_type": "inet",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "post_login_url",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "token",
+          "constraint_name": "accounts_logintoken_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "accounts_user",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('accounts_user_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "email",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "email_bouncing",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 3
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2012-10-02 02:11:20.907221+00'::timestamp with time zone",
+          "ordinal_position": 4
+        },
+        {
+          "name": "last_login",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "email_bounce_reason",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "data",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "accounts_user_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "activity_activity",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('activity_activity_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "date",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "variety",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "politician_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "payload",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "guid",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "active",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "activity_activity_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "alerts_seenitem",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('alerts_seenitem_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "topic_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "item_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "timestamp",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2012-10-02 02:11:21.838217+00'::timestamp with time zone",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "alerts_seenitem_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "topic_id",
+          "references": {
+            "schema": "public",
+            "table": "alerts_topic",
+            "column": "id"
+          },
+          "constraint_name": "topic_id_refs_id_be88d095f79f677"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "alerts_subscription",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('alerts_subscription_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "topic_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "user_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2012-10-02 02:11:22.154036+00'::timestamp with time zone",
+          "ordinal_position": 4
+        },
+        {
+          "name": "active",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "true",
+          "ordinal_position": 5
+        },
+        {
+          "name": "last_sent",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "alerts_subscription_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "topic_id",
+          "references": {
+            "schema": "public",
+            "table": "alerts_topic",
+            "column": "id"
+          },
+          "constraint_name": "topic_id_refs_id_321f683c8b4497f8"
+        },
+        {
+          "column": "user_id",
+          "references": {
+            "schema": "public",
+            "table": "accounts_user",
+            "column": "id"
+          },
+          "constraint_name": "user_id_refs_id_40bec02c5ba745e6"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "alerts_topic",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('alerts_topic_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "query",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2012-10-02 02:11:21.991692+00'::timestamp with time zone",
+          "ordinal_position": 3
+        },
+        {
+          "name": "last_checked",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "last_found",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "alerts_topic_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "auth_group",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('auth_group_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "auth_group_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "auth_group_permissions",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('auth_group_permissions_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "group_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "permission_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "auth_group_permissions_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "group_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_group",
+            "column": "id"
+          },
+          "constraint_name": "group_id_refs_id_3cea63fe"
+        },
+        {
+          "column": "permission_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_permission",
+            "column": "id"
+          },
+          "constraint_name": "auth_group_permissions_permission_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "auth_message",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('auth_message_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "user_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "message",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "auth_message_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_user",
+            "column": "id"
+          },
+          "constraint_name": "auth_message_user_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "auth_permission",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('auth_permission_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "content_type_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "codename",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "auth_permission_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "content_type_id",
+          "references": {
+            "schema": "public",
+            "table": "django_content_type",
+            "column": "id"
+          },
+          "constraint_name": "content_type_id_refs_id_728de91f"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "auth_user",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('auth_user_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "username",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "first_name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "last_name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "email",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "password",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "is_staff",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "is_active",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "is_superuser",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "last_login",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "date_joined",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 11
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "auth_user_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "auth_user_groups",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('auth_user_groups_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "user_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "group_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "auth_user_groups_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_user",
+            "column": "id"
+          },
+          "constraint_name": "user_id_refs_id_7ceef80f"
+        },
+        {
+          "column": "group_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_group",
+            "column": "id"
+          },
+          "constraint_name": "auth_user_groups_group_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "auth_user_user_permissions",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('auth_user_user_permissions_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "user_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "permission_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "auth_user_user_permissions_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_user",
+            "column": "id"
+          },
+          "constraint_name": "user_id_refs_id_dfbab7d"
+        },
+        {
+          "column": "permission_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_permission",
+            "column": "id"
+          },
+          "constraint_name": "auth_user_user_permissions_permission_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "bills_bill",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('bills_bill_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "number",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "number_only",
+          "data_type": "smallint",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "sponsor_member_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "privatemember",
+          "data_type": "boolean",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "sponsor_politician_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "law",
+          "data_type": "boolean",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "added",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "institution",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "name_fr",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 11
+        },
+        {
+          "name": "short_title_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 12
+        },
+        {
+          "name": "short_title_fr",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 13
+        },
+        {
+          "name": "status_date",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 14
+        },
+        {
+          "name": "introduced",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 15
+        },
+        {
+          "name": "text_docid",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 16
+        },
+        {
+          "name": "status_code",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 17
+        },
+        {
+          "name": "billstages_json",
+          "data_type": "text",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 18
+        },
+        {
+          "name": "legisinfo_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 19
+        },
+        {
+          "name": "library_summary_available",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 20
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 21
+        },
+        {
+          "name": "latest_debate_date",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 22
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "bills_bill_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "sponsor_member_id",
+          "references": {
+            "schema": "public",
+            "table": "core_electedmember",
+            "column": "id"
+          },
+          "constraint_name": "sponsor_member_id_refs_id_6f3f762b"
+        },
+        {
+          "column": "sponsor_politician_id",
+          "references": {
+            "schema": "public",
+            "table": "core_politician",
+            "column": "id"
+          },
+          "constraint_name": "sponsor_politician_id_refs_id_188d955c"
+        },
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "bills_bill_session_id_aa62dcb6_fk_core_session_id"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "bills_bill_similar_bills",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "from_bill_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "to_bill_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "bills_bill_similar_bills_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "to_bill_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_bill",
+            "column": "id"
+          },
+          "constraint_name": "bills_bill_similar_bills_to_bill_id_67b84825_fk_bills_bill_id"
+        },
+        {
+          "column": "from_bill_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_bill",
+            "column": "id"
+          },
+          "constraint_name": "bills_bill_similar_bills_from_bill_id_8c11160d_fk_bills_bill_id"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "bills_billtext",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('bills_billtext_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "bill_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "docid",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2012-10-05 21:47:51.655741+00'::timestamp with time zone",
+          "ordinal_position": 4
+        },
+        {
+          "name": "text_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "text_fr",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "summary_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "bills_billtext_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "bill_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_bill",
+            "column": "id"
+          },
+          "constraint_name": "bill_id_refs_id_66317eca06bd532e"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "bills_membervote",
+      "columns": [
+        {
+          "name": "member_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "politician_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "votequestion_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('bills_membervote_id_seq'::regclass)",
+          "ordinal_position": 4
+        },
+        {
+          "name": "vote",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "dissent",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "bills_membervote_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "member_id",
+          "references": {
+            "schema": "public",
+            "table": "core_electedmember",
+            "column": "id"
+          },
+          "constraint_name": "member_id_refs_id_6dc7c26e"
+        },
+        {
+          "column": "votequestion_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_votequestion",
+            "column": "id"
+          },
+          "constraint_name": "votequestion_id_refs_id_78e71319"
+        },
+        {
+          "column": "politician_id",
+          "references": {
+            "schema": "public",
+            "table": "core_politician",
+            "column": "id"
+          },
+          "constraint_name": "politician_id_refs_id_192c901f"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "bills_partyvote",
+      "columns": [
+        {
+          "name": "vote",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "party_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "votequestion_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('bills_partyvote_id_seq'::regclass)",
+          "ordinal_position": 4
+        },
+        {
+          "name": "disagreement",
+          "data_type": "double precision",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "bills_partyvote_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "votequestion_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_votequestion",
+            "column": "id"
+          },
+          "constraint_name": "votequestion_id_refs_id_4e023d5564becbea"
+        },
+        {
+          "column": "party_id",
+          "references": {
+            "schema": "public",
+            "table": "core_party",
+            "column": "id"
+          },
+          "constraint_name": "party_id_refs_id_9851b846370180b"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "bills_votequestion",
+      "columns": [
+        {
+          "name": "description_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "nay_total",
+          "data_type": "smallint",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "bill_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "paired_total",
+          "data_type": "smallint",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "number",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "result",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "date",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('bills_votequestion_id_seq'::regclass)",
+          "ordinal_position": 9
+        },
+        {
+          "name": "yea_total",
+          "data_type": "smallint",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "context_statement_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 11
+        },
+        {
+          "name": "description_fr",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 12
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "bills_votequestion_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "bill_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_bill",
+            "column": "id"
+          },
+          "constraint_name": "bill_id_refs_id_18a9b224"
+        },
+        {
+          "column": "context_statement_id",
+          "references": {
+            "schema": "public",
+            "table": "hansards_statement",
+            "column": "id"
+          },
+          "constraint_name": "context_statement_id_refs_id_2c302e8372d5470a"
+        },
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "session_id_refs_id_466b6e40"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "committees_committee",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('committees_committee_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "short_name_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "parent_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "display",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "name_fr",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "short_name_fr",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "joint",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "committees_committee_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "parent_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committee",
+            "column": "id"
+          },
+          "constraint_name": "parent_id_refs_id_65ecaa5ea7c4a6ed"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "committees_committeeactivity",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('committees_committeeactivity_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "committee_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "name_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "name_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "study",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 5
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "committees_committeeactivity_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "committee_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committee",
+            "column": "id"
+          },
+          "constraint_name": "committee_id_refs_id_6c864d27b9f2f5dc"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "committees_committeeactivityinsession",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('committees_committeeactivityinsession_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "activity_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "source_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "committees_committeeactivityinsession_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "activity_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committeeactivity",
+            "column": "id"
+          },
+          "constraint_name": "activity_id_refs_id_3cfdfcb6d1df7113"
+        },
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "session_id_refs_id_51b2741ca7fe3c4"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "committees_committeeinsession",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('committees_committeeinsession_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "committee_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "acronym",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "committees_committeeinsession_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "committee_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committee",
+            "column": "id"
+          },
+          "constraint_name": "committee_id_refs_id_327e5d4ea016f8b1"
+        },
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "session_id_refs_id_317cb71f31729d81"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "committees_committeemeeting",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('committees_committeemeeting_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "date",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "start_time",
+          "data_type": "time without time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "end_time",
+          "data_type": "time without time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "committee_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "number",
+          "data_type": "smallint",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "minutes",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "notice",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "evidence_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "in_camera",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 11
+        },
+        {
+          "name": "travel",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 12
+        },
+        {
+          "name": "webcast",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 13
+        },
+        {
+          "name": "televised",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 14
+        },
+        {
+          "name": "source_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 15
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "committees_committeemeeting_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "committee_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committee",
+            "column": "id"
+          },
+          "constraint_name": "committee_id_refs_id_5ea2b11ef8d19907"
+        },
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "session_id_refs_id_699753c72f714bc9"
+        },
+        {
+          "column": "evidence_id",
+          "references": {
+            "schema": "public",
+            "table": "hansards_document",
+            "column": "id"
+          },
+          "constraint_name": "evidence_id_refs_id_644413ac1470a0c6"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "committees_committeemeeting_activities",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('committees_committeemeeting_activities_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "committeemeeting_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "committeeactivity_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "committees_committeemeeting_activities_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "committeeactivity_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committeeactivity",
+            "column": "id"
+          },
+          "constraint_name": "committeeactivity_id_refs_id_21c3633048e142c3"
+        },
+        {
+          "column": "committeemeeting_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committeemeeting",
+            "column": "id"
+          },
+          "constraint_name": "committeemeeting_id_refs_id_6b3229d378102018"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "committees_committeereport",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('committees_committeereport_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "committee_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "number",
+          "data_type": "smallint",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "name_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "source_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "adopted_date",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "presented_date",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "government_response",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 9
+        },
+        {
+          "name": "parent_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "name_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 11
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "committees_committeereport_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "parent_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committeereport",
+            "column": "id"
+          },
+          "constraint_name": "parent_id_refs_id_2e952deed4931d93"
+        },
+        {
+          "column": "committee_id",
+          "references": {
+            "schema": "public",
+            "table": "committees_committee",
+            "column": "id"
+          },
+          "constraint_name": "committee_id_refs_id_7ee00b7a3c19862d"
+        },
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "session_id_refs_id_65bb966c0b220503"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "contact_contactmessage",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('contact_contactmessage_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "thread_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "from_name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "from_raw",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "message_display",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "message",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "message_raw",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "subject",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "time",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "sent",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "published",
+          "data_type": "boolean",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 11
+        },
+        {
+          "name": "from_politician",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 12
+        },
+        {
+          "name": "survey",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 13
+        },
+        {
+          "name": "surveys_remaining",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 14
+        },
+        {
+          "name": "last_survey",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 15
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "contact_contactmessage_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "thread_id",
+          "references": {
+            "schema": "public",
+            "table": "contact_contactthread",
+            "column": "id"
+          },
+          "constraint_name": "contact_contactmessage_thread_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "contact_contactthread",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('contact_contactthread_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "code_email",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "code_web",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "politician_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "from_email",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "confirmed",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "share",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "why",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "from_postcode",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "from_street_address",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 11
+        },
+        {
+          "name": "published",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "false",
+          "ordinal_position": 12
+        },
+        {
+          "name": "surveys_remaining",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 13
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "contact_contactthread_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "core_electedmember",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('core_electedmember_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "politician_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "riding_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "party_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "end_date",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "start_date",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_electedmember_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "riding_id",
+          "references": {
+            "schema": "public",
+            "table": "core_riding",
+            "column": "id"
+          },
+          "constraint_name": "core_electedmember_riding_id_fkey"
+        },
+        {
+          "column": "politician_id",
+          "references": {
+            "schema": "public",
+            "table": "core_politician",
+            "column": "id"
+          },
+          "constraint_name": "core_electedmember_member_id_fkey"
+        },
+        {
+          "column": "party_id",
+          "references": {
+            "schema": "public",
+            "table": "core_party",
+            "column": "id"
+          },
+          "constraint_name": "core_electedmember_party_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "core_electedmember_sessions",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('core_electedmember_sessions_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "electedmember_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_electedmember_sessions_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "session_id_refs_id_281708d0"
+        },
+        {
+          "column": "electedmember_id",
+          "references": {
+            "schema": "public",
+            "table": "core_electedmember",
+            "column": "id"
+          },
+          "constraint_name": "electedmember_id_refs_id_7955a32a"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "core_party",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('core_party_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "short_name_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "name_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "short_name_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_party_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "core_partyalternatename",
+      "columns": [
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "party_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "name",
+          "constraint_name": "core_partyalternatename_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "party_id",
+          "references": {
+            "schema": "public",
+            "table": "core_party",
+            "column": "id"
+          },
+          "constraint_name": "core_partyalternatename_party_id_fc8d23e2_fk_core_party_id"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "core_politician",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('core_politician_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "name_given",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "name_family",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "dob",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "gender",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "headshot",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "headshot_thumbnail",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 9
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_politician_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "core_politicianinfo",
+      "columns": [
+        {
+          "name": "politician_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('core_politicianinfo_id_seq'::regclass)",
+          "ordinal_position": 2
+        },
+        {
+          "name": "value",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "schema",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_politicianinfo_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "politician_id",
+          "references": {
+            "schema": "public",
+            "table": "core_politician",
+            "column": "id"
+          },
+          "constraint_name": "politician_id_refs_id_4ca1d927"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "core_riding",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('core_riding_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "province",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "edid",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "name_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "current",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_riding_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "core_ridingpostcodecache",
+      "columns": [
+        {
+          "name": "postcode",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "source",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "timestamp",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "riding_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "postcode",
+          "constraint_name": "core_ridingpostcodecache_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "riding_id",
+          "references": {
+            "schema": "public",
+            "table": "core_riding",
+            "column": "id"
+          },
+          "constraint_name": "core_ridingpostcodecache_riding_id_8423275c_fk_core_riding_id"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "core_session",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "start",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "end",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "parliamentnum",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "sessnum",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_session_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "core_sitenews",
+      "columns": [
+        {
+          "name": "date",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2010-04-10 09:50:11.481426+00'::timestamp with time zone",
+          "ordinal_position": 1
+        },
+        {
+          "name": "text",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "active",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "true",
+          "ordinal_position": 3
+        },
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('core_sitenews_id_seq'::regclass)",
+          "ordinal_position": 4
+        },
+        {
+          "name": "title",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "core_sitenews_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "django_admin_log",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('django_admin_log_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "action_time",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "user_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "content_type_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "object_id",
+          "data_type": "text",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "object_repr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "action_flag",
+          "data_type": "smallint",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "change_message",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "django_admin_log_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": {
+            "schema": "public",
+            "table": "auth_user",
+            "column": "id"
+          },
+          "constraint_name": "user_id_refs_id_c8665aa"
+        },
+        {
+          "column": "content_type_id",
+          "references": {
+            "schema": "public",
+            "table": "django_content_type",
+            "column": "id"
+          },
+          "constraint_name": "content_type_id_refs_id_288599e6"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "django_content_type",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('django_content_type_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "app_label",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "model",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "django_content_type_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "django_flatpage",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('django_flatpage_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "url",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "title",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "content",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "enable_comments",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "template_name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "registration_required",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "django_flatpage_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "django_flatpage_sites",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('django_flatpage_sites_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "flatpage_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "site_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "django_flatpage_sites_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "site_id",
+          "references": {
+            "schema": "public",
+            "table": "django_site",
+            "column": "id"
+          },
+          "constraint_name": "django_flatpage_sites_site_id_fkey"
+        },
+        {
+          "column": "flatpage_id",
+          "references": {
+            "schema": "public",
+            "table": "django_flatpage",
+            "column": "id"
+          },
+          "constraint_name": "flatpage_id_refs_id_c0e84f5a"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "django_migrations",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('django_migrations_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "app",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "applied",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "django_migrations_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "django_session",
+      "columns": [
+        {
+          "name": "session_key",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "session_data",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "expire_date",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "session_key",
+          "constraint_name": "django_session_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "django_site",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('django_site_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "domain",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "django_site_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "elections_candidacy",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('elections_candidacy_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "candidate_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "riding_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "party_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "election_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "occupation",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "votetotal",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "elected",
+          "data_type": "boolean",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "votepercent",
+          "data_type": "numeric",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 9
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "elections_candidacy_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "election_id",
+          "references": {
+            "schema": "public",
+            "table": "elections_election",
+            "column": "id"
+          },
+          "constraint_name": "elections_candidacy_election_id_fkey"
+        },
+        {
+          "column": "riding_id",
+          "references": {
+            "schema": "public",
+            "table": "core_riding",
+            "column": "id"
+          },
+          "constraint_name": "elections_candidacy_riding_id_fkey"
+        },
+        {
+          "column": "candidate_id",
+          "references": {
+            "schema": "public",
+            "table": "core_politician",
+            "column": "id"
+          },
+          "constraint_name": "elections_candidacy_candidate_id_fkey"
+        },
+        {
+          "column": "party_id",
+          "references": {
+            "schema": "public",
+            "table": "core_party",
+            "column": "id"
+          },
+          "constraint_name": "elections_candidacy_party_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "elections_election",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('elections_election_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "date",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "byelection",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "elections_election_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "financials_contribution",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('financials_contribution_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "contributor_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "amount",
+          "data_type": "numeric",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "amount_monetary",
+          "data_type": "numeric",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "amount_nonmonetary",
+          "data_type": "numeric",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "date",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "individual_recipient_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "financials_contribution_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "contributor_id",
+          "references": {
+            "schema": "public",
+            "table": "financials_contributor",
+            "column": "id"
+          },
+          "constraint_name": "financials_contribution_contributor_id_fkey"
+        },
+        {
+          "column": "individual_recipient_id",
+          "references": {
+            "schema": "public",
+            "table": "elections_candidacy",
+            "column": "id"
+          },
+          "constraint_name": "financials_contribution_individual_recipient_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "financials_contributor",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('financials_contributor_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "name_given",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "name_family",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "city",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "province",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "postcode",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "financials_contributor_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "hansards_document",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('hansards_document_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "date",
+          "data_type": "date",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "number",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "session_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "most_frequent_word",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "wordcloud",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "document_type",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "source_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "downloaded",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "public",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "multilingual",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 11
+        },
+        {
+          "name": "skip_parsing",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 12
+        },
+        {
+          "name": "xml_source_url",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 13
+        },
+        {
+          "name": "first_imported",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 14
+        },
+        {
+          "name": "last_imported",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 15
+        },
+        {
+          "name": "skip_redownload",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 16
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "hansards_document_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "session_id",
+          "references": {
+            "schema": "public",
+            "table": "core_session",
+            "column": "id"
+          },
+          "constraint_name": "hansards_hansard_session_id_fkey"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "hansards_oldsequencemapping",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('hansards_oldsequencemapping_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "document_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "sequence",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "hansards_oldsequencemapping_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "document_id",
+          "references": {
+            "schema": "public",
+            "table": "hansards_document",
+            "column": "id"
+          },
+          "constraint_name": "document_id_refs_id_5dbfdf3d10c5efd2"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "hansards_oldslugmapping",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "old_slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "new_slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "document_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "hansards_oldslugmapping_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "document_id",
+          "references": {
+            "schema": "public",
+            "table": "hansards_document",
+            "column": "id"
+          },
+          "constraint_name": "hansards_oldslugmapp_document_id_2030a856_fk_hansards_"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "hansards_statement",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('hansards_statement_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "document_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "time",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "h1_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "''::character varying",
+          "ordinal_position": 4
+        },
+        {
+          "name": "h2_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "''::character varying",
+          "ordinal_position": 5
+        },
+        {
+          "name": "member_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "who_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "content_en",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "sequence",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "wordcount",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "politician_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 11
+        },
+        {
+          "name": "procedural",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 12
+        },
+        {
+          "name": "h3_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 13
+        },
+        {
+          "name": "who_hocid",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 14
+        },
+        {
+          "name": "content_fr",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 15
+        },
+        {
+          "name": "statement_type",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 16
+        },
+        {
+          "name": "written_question",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 17
+        },
+        {
+          "name": "source_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 18
+        },
+        {
+          "name": "who_context_en",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 19
+        },
+        {
+          "name": "slug",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 20
+        },
+        {
+          "name": "urlcache",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 21
+        },
+        {
+          "name": "h1_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 22
+        },
+        {
+          "name": "h2_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 23
+        },
+        {
+          "name": "h3_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 24
+        },
+        {
+          "name": "who_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 25
+        },
+        {
+          "name": "who_context_fr",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 26
+        },
+        {
+          "name": "wordcount_en",
+          "data_type": "smallint",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 27
+        },
+        {
+          "name": "bill_debate_stage",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 28
+        },
+        {
+          "name": "bill_debated_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 29
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "hansards_statement_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "member_id",
+          "references": {
+            "schema": "public",
+            "table": "core_electedmember",
+            "column": "id"
+          },
+          "constraint_name": "hansards_statement_member_id_fkey"
+        },
+        {
+          "column": "document_id",
+          "references": {
+            "schema": "public",
+            "table": "hansards_document",
+            "column": "id"
+          },
+          "constraint_name": "hansards_statement_hansard_id_fkey"
+        },
+        {
+          "column": "bill_debated_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_bill",
+            "column": "id"
+          },
+          "constraint_name": "hansards_statement_bill_debated_id_e9c56f18_fk_bills_bill_id"
+        },
+        {
+          "column": "politician_id",
+          "references": {
+            "schema": "public",
+            "table": "core_politician",
+            "column": "id"
+          },
+          "constraint_name": "politician_id_refs_id_2fc8b936"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "hansards_statement_bills",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('hansards_statement_bills_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "statement_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "bill_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "hansards_statement_bills_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "statement_id",
+          "references": {
+            "schema": "public",
+            "table": "hansards_statement",
+            "column": "id"
+          },
+          "constraint_name": "statement_id_refs_id_77080a36"
+        },
+        {
+          "column": "bill_id",
+          "references": {
+            "schema": "public",
+            "table": "bills_bill",
+            "column": "id"
+          },
+          "constraint_name": "bill_id_refs_id_46176610"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "hansards_statement_mentioned_politicians",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('hansards_statement_mentioned_politicians_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "statement_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "politician_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "hansards_statement_mentioned_politicians_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "politician_id",
+          "references": {
+            "schema": "public",
+            "table": "core_politician",
+            "column": "id"
+          },
+          "constraint_name": "politician_id_refs_id_46e2b66a4c4fa6f0"
+        },
+        {
+          "column": "statement_id",
+          "references": {
+            "schema": "public",
+            "table": "hansards_statement",
+            "column": "id"
+          },
+          "constraint_name": "statement_id_refs_id_206630e19480521b"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "indexer_index",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('indexer_index_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "app_label",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "module_name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "column",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "value",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "object_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "indexer_index_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "labs_haiku",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('labs_haiku_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "line1",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "line2",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "line3",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "attribution",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "attribution_url",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "worthy",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "labs_haiku_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "search_indexingtask",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('search_indexingtask_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "action",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "identifier",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "timestamp",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2012-05-28 16:39:36.568718+00'::timestamp with time zone",
+          "ordinal_position": 4
+        },
+        {
+          "name": "content_type_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "object_id",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "search_indexingtask_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "content_type_id",
+          "references": {
+            "schema": "public",
+            "table": "django_content_type",
+            "column": "id"
+          },
+          "constraint_name": "content_type_id_refs_id_44a3a76e75c62ea9"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "sentry_filtervalue",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('sentry_filtervalue_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "key",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "value",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "sentry_filtervalue_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "sentry_groupedmessage",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('sentry_groupedmessage_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "logger",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "'root'::character varying",
+          "ordinal_position": 2
+        },
+        {
+          "name": "class_name",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "level",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "40",
+          "ordinal_position": 4
+        },
+        {
+          "name": "message",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "traceback",
+          "data_type": "text",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "view",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "checksum",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "status",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "0",
+          "ordinal_position": 9
+        },
+        {
+          "name": "times_seen",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "1",
+          "ordinal_position": 10
+        },
+        {
+          "name": "last_seen",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2010-12-28 04:01:48.504708+00'::timestamp with time zone",
+          "ordinal_position": 11
+        },
+        {
+          "name": "first_seen",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2010-12-28 04:01:48.504953+00'::timestamp with time zone",
+          "ordinal_position": 12
+        },
+        {
+          "name": "data",
+          "data_type": "text",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 13
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "sentry_groupedmessage_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "sentry_message",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('sentry_message_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "logger",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "'root'::character varying",
+          "ordinal_position": 2
+        },
+        {
+          "name": "class_name",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "level",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "40",
+          "ordinal_position": 4
+        },
+        {
+          "name": "message",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "traceback",
+          "data_type": "text",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "view",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "url",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "server_name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "checksum",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 10
+        },
+        {
+          "name": "datetime",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2010-12-28 04:01:48.749654+00'::timestamp with time zone",
+          "ordinal_position": 11
+        },
+        {
+          "name": "data",
+          "data_type": "text",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 12
+        },
+        {
+          "name": "group_id",
+          "data_type": "integer",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 13
+        },
+        {
+          "name": "site",
+          "data_type": "character varying",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 14
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "sentry_message_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "group_id",
+          "references": {
+            "schema": "public",
+            "table": "sentry_groupedmessage",
+            "column": "id"
+          },
+          "constraint_name": "group_id_refs_id_2955655b757f499a"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "south_migrationhistory",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('south_migrationhistory_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "app_name",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "migration",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "applied",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "south_migrationhistory_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "summaries_summary",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "summary_type",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "identifier",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "summary_text",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "summarized_statement_count",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        },
+        {
+          "name": "public",
+          "data_type": "boolean",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 7
+        },
+        {
+          "name": "metadata",
+          "data_type": "jsonb",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 8
+        },
+        {
+          "name": "latest_statement_date",
+          "data_type": "date",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 9
+        },
+        {
+          "name": "summary_json",
+          "data_type": "jsonb",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 10
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "summaries_summary_pkey"
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "schema": "public",
+      "table": "summaries_summarypoll",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 1
+        },
+        {
+          "name": "vote",
+          "data_type": "smallint",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "created",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "user_ip",
+          "data_type": "inet",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 4
+        },
+        {
+          "name": "summary_id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "user_agent",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "summaries_summarypoll_pkey"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "summary_id",
+          "references": {
+            "schema": "public",
+            "table": "summaries_summary",
+            "column": "id"
+          },
+          "constraint_name": "summaries_summarypol_summary_id_4fafa907_fk_summaries"
+        }
+      ]
+    },
+    {
+      "schema": "public",
+      "table": "text_analysis_textanalysis",
+      "columns": [
+        {
+          "name": "id",
+          "data_type": "integer",
+          "is_nullable": false,
+          "default": "nextval('text_analysis_textanalysis_id_seq'::regclass)",
+          "ordinal_position": 1
+        },
+        {
+          "name": "key",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 2
+        },
+        {
+          "name": "lang",
+          "data_type": "character varying",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 3
+        },
+        {
+          "name": "updated",
+          "data_type": "timestamp with time zone",
+          "is_nullable": false,
+          "default": "'2014-04-29 03:49:22.830104+00'::timestamp with time zone",
+          "ordinal_position": 4
+        },
+        {
+          "name": "expires",
+          "data_type": "timestamp with time zone",
+          "is_nullable": true,
+          "default": "",
+          "ordinal_position": 5
+        },
+        {
+          "name": "probability_data_json",
+          "data_type": "text",
+          "is_nullable": false,
+          "default": "",
+          "ordinal_position": 6
+        }
+      ],
+      "primary_keys": [
+        {
+          "column": "id",
+          "constraint_name": "text_analysis_textanalysis_pkey"
+        }
+      ],
+      "foreign_keys": []
+    }
+  ]
 }
