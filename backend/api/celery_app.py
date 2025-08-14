@@ -21,7 +21,7 @@ def run_category(category: str = "parliamentary", retries: int = 2, max_records:
 	"""Run full category runner via subprocess; returns exit code"""
 	cmd = [
 		"python",
-		"backend/scripts/run_full_category.py",
+		"scripts/run_full_category.py",
 		"--category",
 		str(category),
 		"--retries",

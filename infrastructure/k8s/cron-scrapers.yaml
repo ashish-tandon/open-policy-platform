@@ -19,7 +19,7 @@ spec:
                     secretKeyRef:
                       name: openpolicy-secrets
                       key: SCRAPERS_DATABASE_URL
-              command: ["python", "backend/scripts/run_full_category.py", "--category", "parliamentary", "--retries", "2", "--max-records", "10"]
+              command: ["python", "scripts/run_full_category.py", "--category", "parliamentary", "--retries", "2", "--max-records", "10"]
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -42,7 +42,7 @@ spec:
                     secretKeyRef:
                       name: openpolicy-secrets
                       key: SCRAPERS_DATABASE_URL
-              command: ["python", "backend/scripts/run_full_category.py", "--category", "provincial", "--retries", "2", "--max-records", "10"]
+              command: ["python", "scripts/run_full_category.py", "--category", "provincial", "--retries", "2", "--max-records", "10"]
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -65,7 +65,7 @@ spec:
                     secretKeyRef:
                       name: openpolicy-secrets
                       key: SCRAPERS_DATABASE_URL
-              command: ["python", "backend/scripts/run_full_category.py", "--category", "municipal", "--retries", "2", "--max-records", "10"]
+              command: ["python", "scripts/run_full_category.py", "--category", "municipal", "--retries", "2", "--max-records", "10"]
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -88,4 +88,4 @@ spec:
                     secretKeyRef:
                       name: openpolicy-secrets
                       key: SCRAPERS_DATABASE_URL
-              command: ["python", "backend/scripts/run_full_category.py", "--category", "civic", "--retries", "2", "--max-records", "10"]
+              command: ["python", "scripts/run_full_category.py", "--category", "civic", "--retries", "2", "--max-records", "10"]

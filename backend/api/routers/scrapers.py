@@ -368,7 +368,7 @@ async def run_category_dev(category: str, current_user = Depends(require_admin))
     try:
         cmd = [
             "python",
-            "backend/scripts/run_category.py",
+            "scripts/run_category.py",
             "--category",
             category,
         ]
@@ -388,7 +388,7 @@ async def run_category_full(category: str, retries: int = 2, max_records: int = 
     try:
         cmd = [
             "python",
-            "backend/scripts/run_full_category.py",
+            "scripts/run_full_category.py",
             "--category",
             category,
             "--retries",
