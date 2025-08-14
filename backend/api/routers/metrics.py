@@ -8,6 +8,7 @@ router = APIRouter()
 _latest_run_ts = Gauge("openpolicy_scraper_latest_run_timestamp_seconds", "Unix timestamp of the latest scraper run end (or start)")
 _runs_total = Gauge("openpolicy_scraper_runs_total", "Total scraper runs by status", ["status"])
 _latest_records = Gauge("openpolicy_scraper_latest_records", "Records collected in latest run per category", ["category"])
+_latest_run_ts_by_category = Gauge("openpolicy_scraper_latest_run_category_timestamp_seconds", "Unix timestamp of latest run per category", ["category"])
 
 
 def _update_scraper_metrics() -> None:
@@ -39,7 +40,7 @@ def _update_scraper_metrics() -> None:
 			# Latest records per category (distinct on category)
 			rows = conn.execute(sql_text(
 				"""
-				SELECT DISTINCT ON (category) category, COALESCE(records_collected, 0)
+				SELECT DISTINCT ON (category) category, COALESCE(records_collected, 0), EXTRACT(EPOCH FROM COALESCE(end_time, start_time))::bigint
 				FROM scraper_runs
 				WHERE end_time IS NOT NULL
 				ORDER BY category, id DESC
@@ -47,6 +48,8 @@ def _update_scraper_metrics() -> None:
 			)).fetchall()
 			for r in rows:
 				_latest_records.labels(category=str(r[0])).set(int(r[1] or 0))
+				if r[2] is not None:
+					_latest_run_ts_by_category.labels(category=str(r[0])).set(int(r[2]))
 	except Exception:
 		# Best-effort; do not block metrics endpoint
 		return

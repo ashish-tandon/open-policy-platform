@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axios';
 
- type EntityType = 'representatives' | 'bills' | 'committees' | 'votes';
+ type EntityType = 'representatives' | 'bills' | 'committees' | 'votes' | 'events';
 
  type ApiList<T> = {
 	 items: T[];
@@ -51,6 +51,8 @@ import api from '../../api/axios';
 				 return ['id', 'name', 'classification'];
 			 case 'votes':
 				 return ['id', 'bill_id', 'member', 'vote'];
+			 case 'events':
+				 return ['id', 'title', 'date', 'text'];
 			 default:
 				 return [];
 		 }
@@ -66,6 +68,7 @@ import api from '../../api/axios';
 					 <option value="bills">Bills</option>
 					 <option value="committees">Committees</option>
 					 <option value="votes">Votes</option>
+					 <option value="events">Events</option>
 				 </select>
 				 <label className="text-sm">Page size</label>
 				 <select className="border rounded px-2 py-1" value={limit} onChange={(e) => { setOffset(0); setLimit(parseInt(e.target.value)); }}>

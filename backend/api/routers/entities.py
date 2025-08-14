@@ -163,5 +163,53 @@ async def list_votes(q: Optional[str] = None, limit: int = Query(50, ge=1, le=20
 			rows = conn.execute(sql_text(sql), params).fetchall()
 			items = [dict(r._mapping) for r in rows]
 		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
+<<<<<<< HEAD
 	except Exception:
 		return {"items": [], "count": 0, "limit": limit, "offset": offset}
+=======
+    except Exception:
+        return {"items": [], "count": 0, "limit": limit, "offset": offset}
+
+
+@router.get("/events")
+async def list_events(q: Optional[str] = None, limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0)):
+	"""List events/debates (maps to hansards_statement or similar)."""
+	try:
+		candidate_tables = ["hansards_statement", "debates", "events"]
+		table = None
+		cols_by_table = {}
+		for t in candidate_tables:
+			cols = _get_columns(t)
+			if cols:
+				table = t
+				cols_by_table = cols
+				break
+		if not table:
+			return {"items": [], "count": 0, "limit": limit, "offset": offset}
+		id_col = _choose(cols_by_table, ["id"]) or "id"
+		title_col = _choose(cols_by_table, ["title", "subject", "topic"]) or None
+		text_col = _choose(cols_by_table, ["text", "content", "body"]) or None
+		date_col = _choose(cols_by_table, ["date", "timestamp", "occurred_at"]) or None
+		select_parts = [f"{id_col} AS id"]
+		if title_col: select_parts.append(f"{title_col} AS title")
+		if text_col: select_parts.append(f"{text_col} AS text")
+		if date_col: select_parts.append(f"{date_col} AS date")
+		where_parts: List[str] = []
+		params: Dict[str, Any] = _paginate(limit, offset)
+		if q and (title_col or text_col):
+			params["q"] = f"%{q}%"
+			targets = [c for c in [title_col, text_col] if c]
+			where_parts.append("( " + " OR ".join([f"{c} ILIKE :q" for c in targets]) + " )")
+		sql = f"SELECT {', '.join(select_parts)} FROM {table}"
+		if where_parts:
+			sql += " WHERE " + " AND ".join(where_parts)
+		sql += " ORDER BY " + id_col + " DESC LIMIT :limit OFFSET :offset"
+		with _engine().connect() as conn:
+			rows = conn.execute(sql_text(sql), params).fetchall()
+			items = [dict(r._mapping) for r in rows]
+		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
+	except HTTPException:
+		raise
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Error listing events: {e}")
+>>>>>>> 3df7657d (Auto-commit pending changes before rebase - PR synchronize)
