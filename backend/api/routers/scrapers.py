@@ -106,7 +106,7 @@ async def get_scrapers(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error retrieving scrapers: {str(e)}")
 
 @router.get("/categories")
-async def get_scraper_categories(db: Session = Depends(get_db)):
+async def get_scraper_categories(request: Request, db: Session = Depends(get_db)):
     """Get scraper categories with statistics"""
     try:
         categories = {
@@ -193,7 +193,7 @@ async def run_scraper(
         raise HTTPException(status_code=500, detail=f"Error initiating scraper execution: {str(e)}")
 
 @router.get("/{scraper_id}/status")
-async def get_scraper_status(scraper_id: str, db: Session = Depends(get_db)):
+async def get_scraper_status(scraper_id: str, request: Request, db: Session = Depends(get_db)):
     """Get detailed status of a specific scraper"""
     try:
         # Find scraper in reports

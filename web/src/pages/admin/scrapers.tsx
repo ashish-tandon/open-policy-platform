@@ -22,6 +22,15 @@ type Summary = {
 	total_records: number;
 } | null;
 
+type Run = {
+	id: number;
+	category: string;
+	start_time?: string | null;
+	end_time?: string | null;
+	status: string;
+	records_collected: number;
+};
+
 const AdminScrapers: React.FC = () => {
 	const [scrapers, setScrapers] = useState<Scraper[]>([]);
 	const [categories, setCategories] = useState<CategoriesSummary>({});
@@ -31,16 +40,19 @@ const AdminScrapers: React.FC = () => {
 	const [running, setRunning] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
 	const [summary, setSummary] = useState<Summary>(null);
+	const [runs, setRuns] = useState<Run[]>([]);
 
 	const refresh = async () => {
-		const [statusRes, catRes, sumRes] = await Promise.all([
+		const [statusRes, catRes, sumRes, runsRes] = await Promise.all([
 			api.get('/api/v1/scrapers'),
 			api.get('/api/v1/scrapers/categories'),
 			api.get('/api/v1/scrapers/summary').catch(() => ({ data: null })),
+			api.get('/api/v1/scrapers/runs?limit=20').catch(() => ({ data: [] })),
 		]);
 		setScrapers(statusRes.data.scrapers || []);
 		setCategories(catRes.data.categories || {});
 		setSummary(sumRes.data || null);
+		setRuns(runsRes.data || []);
 	};
 
 	useEffect(() => {
@@ -114,36 +126,66 @@ const AdminScrapers: React.FC = () => {
 							</div>
 						)}
 					</div>
-					<div className="bg-white rounded-lg shadow p-6 md:col-span-2">
-						<h2 className="font-semibold mb-2">Scrapers</h2>
-						<div className="overflow-auto">
-							<table className="min-w-full text-sm">
-								<thead>
-									<tr className="text-left border-b">
-										<th className="py-2 pr-4">Name</th>
-										<th className="py-2 pr-4">Category</th>
-										<th className="py-2 pr-4">Status</th>
-										<th className="py-2 pr-4">Success</th>
-										<th className="py-2 pr-4">Records</th>
-										<th className="py-2 pr-4">Last Run</th>
-									</tr>
-								</thead>
-								<tbody>
-									{scrapers.map((s) => (
-										<tr key={s.name} className="border-b">
-											<td className="py-2 pr-4">{s.name}</td>
-											<td className="py-2 pr-4">{s.category}</td>
-											<td className="py-2 pr-4">{s.status}</td>
-											<td className="py-2 pr-4">{s.success_rate ?? 0}%</td>
-											<td className="py-2 pr-4">{s.records_collected ?? 0}</td>
-											<td className="py-2 pr-4">{s.last_run || '-'}</td>
+					<div className="bg-white rounded-lg shadow p-6 md:col-span-2 space-y-6">
+						<div>
+							<h2 className="font-semibold mb-2">Scrapers</h2>
+							<div className="overflow-auto">
+								<table className="min-w-full text-sm">
+									<thead>
+										<tr className="text-left border-b">
+											<th className="py-2 pr-4">Name</th>
+											<th className="py-2 pr-4">Category</th>
+											<th className="py-2 pr-4">Status</th>
+											<th className="py-2 pr-4">Success</th>
+											<th className="py-2 pr-4">Records</th>
+											<th className="py-2 pr-4">Last Run</th>
 										</tr>
-									))}
-								</tbody>
-							</table>
+									</thead>
+									<tbody>
+										{scrapers.map((s) => (
+											<tr key={s.name} className="border-b">
+												<td className="py-2 pr-4">{s.name}</td>
+												<td className="py-2 pr-4">{s.category}</td>
+												<td className="py-2 pr-4">{s.status}</td>
+												<td className="py-2 pr-4">{s.success_rate ?? 0}%</td>
+												<td className="py-2 pr-4">{s.records_collected ?? 0}</td>
+												<td className="py-2 pr-4">{s.last_run || '-'}</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						</div>
+						<div>
+							<h2 className="font-semibold mb-2">Recent Runs</h2>
+							<div className="overflow-auto">
+								<table className="min-w-full text-sm">
+									<thead>
+										<tr className="text-left border-b">
+											<th className="py-2 pr-4">Run ID</th>
+											<th className="py-2 pr-4">Category</th>
+											<th className="py-2 pr-4">Status</th>
+											<th className="py-2 pr-4">Records</th>
+											<th className="py-2 pr-4">Start</th>
+											<th className="py-2 pr-4">End</th>
+										</tr>
+									</thead>
+									<tbody>
+										{runs.map((r) => (
+											<tr key={r.id} className="border-b">
+												<td className="py-2 pr-4">{r.id}</td>
+												<td className="py-2 pr-4">{r.category}</td>
+												<td className="py-2 pr-4">{r.status}</td>
+												<td className="py-2 pr-4">{r.records_collected}</td>
+												<td className="py-2 pr-4">{r.start_time || '-'}</td>
+												<td className="py-2 pr-4">{r.end_time || '-'}</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
 						</div>
 					</div>
-				</div>
 			)}
 		</div>
 	);
