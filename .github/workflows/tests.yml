@@ -38,6 +38,12 @@ jobs:
           cd backend
           pytest --cov=. --cov-report=term-missing --cov-fail-under=50 || true
 
+      - name: Build web
+        run: |
+          cd web
+          npm ci
+          npm run build
+
       - name: Check docs links
         run: bash scripts/check-docs-links.sh
 

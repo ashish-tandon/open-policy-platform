@@ -233,7 +233,17 @@ async def scraper_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Scraper-specific health check"""
     try:
         # Check for scraper reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(router, "app", None)
+        reports_path = os.getcwd()
+        try:
+            # access FastAPI app state if available
+            from fastapi import Request  # type: ignore
+        except Exception:
+            pass
+        # Fallback to env-configured dir via settings
+        if hasattr(settings, "scraper_reports_dir") and settings.scraper_reports_dir:
+            reports_path = settings.scraper_reports_dir
+        scraper_files = [f for f in os.listdir(reports_path) if f.startswith('scraper_test_report_')]
         
         if not scraper_files:
             return {
@@ -249,7 +259,7 @@ async def scraper_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
         # Get latest report
         latest_report = max(scraper_files)
         try:
-            with open(latest_report, 'r') as f:
+            with open(os.path.join(reports_path, latest_report), 'r') as f:
                 report_data = json.load(f)
             
             summary = report_data.get('summary', {})
