@@ -70,8 +70,8 @@ async def list_representatives(q: Optional[str] = None, limit: int = Query(50, g
 			rows = conn.execute(sql_text(sql), params).fetchall()
 			items = [dict(r._mapping) for r in rows]
 		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
-    except Exception:
-        return {"items": [], "count": 0, "limit": limit, "offset": offset}
+	except Exception:
+		return {"items": [], "count": 0, "limit": limit, "offset": offset}
 
 
 @router.get("/bills")
@@ -102,8 +102,8 @@ async def list_bills(q: Optional[str] = None, limit: int = Query(50, ge=1, le=20
 			rows = conn.execute(sql_text(sql), params).fetchall()
 			items = [dict(r._mapping) for r in rows]
 		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
-    except Exception:
-        return {"items": [], "count": 0, "limit": limit, "offset": offset}
+	except Exception:
+		return {"items": [], "count": 0, "limit": limit, "offset": offset}
 
 
 @router.get("/committees")
@@ -132,8 +132,8 @@ async def list_committees(q: Optional[str] = None, limit: int = Query(50, ge=1, 
 			rows = conn.execute(sql_text(sql), params).fetchall()
 			items = [dict(r._mapping) for r in rows]
 		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
-    except Exception:
-        return {"items": [], "count": 0, "limit": limit, "offset": offset}
+	except Exception:
+		return {"items": [], "count": 0, "limit": limit, "offset": offset}
 
 
 @router.get("/votes")
@@ -163,5 +163,5 @@ async def list_votes(q: Optional[str] = None, limit: int = Query(50, ge=1, le=20
 			rows = conn.execute(sql_text(sql), params).fetchall()
 			items = [dict(r._mapping) for r in rows]
 		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
-    except Exception:
-        return {"items": [], "count": 0, "limit": limit, "offset": offset}
+	except Exception:
+		return {"items": [], "count": 0, "limit": limit, "offset": offset}
