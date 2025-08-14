@@ -48,15 +48,11 @@ async def get_dashboard_stats(
         # Database statistics
         db_stats: Dict[str, Any] = {}
         try:
-            result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-                "-c", "SELECT COUNT(*) FROM core_politician;",
-                "-t", "-A"
-            ], capture_output=True, text=True, timeout=10)
-            if result.returncode == 0 and result.stdout.strip():
-                db_stats["total_politicians"] = int(result.stdout.strip())
-            else:
-                logger.warning("DB stats query failed: rc=%s err=%s", result.returncode, result.stderr)
+            from sqlalchemy import text as sql_text
+            from ...config.database import engine
+            with engine.connect() as conn:
+                row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;")).fetchone()
+                db_stats["total_politicians"] = int(row[0]) if row and row[0] is not None else 0
         except Exception as e:
             logger.warning("DB stats error: %s", e)
             db_stats["total_politicians"] = 0
@@ -119,13 +115,14 @@ async def get_system_status(
     """Get detailed system status"""
     try:
         # Database status
-        db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT 1;",
-            "-t", "-A"
-        ], capture_output=True, text=True, timeout=10)
-        
-        database_status = "healthy" if db_result.returncode == 0 else "unhealthy"
+        try:
+            from sqlalchemy import text as sql_text
+            from ...config.database import engine
+            with engine.connect() as conn:
+                conn.execute(sql_text("SELECT 1"))
+            database_status = "healthy"
+        except Exception:
+            database_status = "unhealthy"
         
         # API status
         api_status = "healthy"
@@ -449,13 +446,12 @@ async def get_system_alerts(
             })
         
         # Database alert
-        db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT 1;",
-            "-t", "-A"
-        ], capture_output=True, text=True, timeout=10)
-        
-        if db_result.returncode != 0:
+        try:
+            from sqlalchemy import text as sql_text
+            from ...config.database import engine
+            with engine.connect() as conn:
+                conn.execute(sql_text("SELECT 1"))
+        except Exception:
             alerts.append({
                 "type": "critical",
                 "message": "Database connection failed",
