@@ -1,0 +1,91 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: openpolicy-scrape-parliamentary
+spec:
+  schedule: "0 3 * * *" # daily at 03:00
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: runner
+              image: ghcr.io/your-org/openpolicy-api:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: SCRAPERS_DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: openpolicy-secrets
+                      key: SCRAPERS_DATABASE_URL
+              command: ["python", "backend/scripts/run_full_category.py", "--category", "parliamentary", "--retries", "2", "--max-records", "10"]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: openpolicy-scrape-provincial
+spec:
+  schedule: "15 3 * * *" # daily at 03:15
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: runner
+              image: ghcr.io/your-org/openpolicy-api:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: SCRAPERS_DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: openpolicy-secrets
+                      key: SCRAPERS_DATABASE_URL
+              command: ["python", "backend/scripts/run_full_category.py", "--category", "provincial", "--retries", "2", "--max-records", "10"]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: openpolicy-scrape-municipal
+spec:
+  schedule: "30 3 * * *" # daily at 03:30
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: runner
+              image: ghcr.io/your-org/openpolicy-api:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: SCRAPERS_DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: openpolicy-secrets
+                      key: SCRAPERS_DATABASE_URL
+              command: ["python", "backend/scripts/run_full_category.py", "--category", "municipal", "--retries", "2", "--max-records", "10"]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: openpolicy-scrape-civic
+spec:
+  schedule: "45 3 * * *" # daily at 03:45
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: runner
+              image: ghcr.io/your-org/openpolicy-api:latest
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: SCRAPERS_DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: openpolicy-secrets
+                      key: SCRAPERS_DATABASE_URL
+              command: ["python", "backend/scripts/run_full_category.py", "--category", "civic", "--retries", "2", "--max-records", "10"]
