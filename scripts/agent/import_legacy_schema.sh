@@ -24,17 +24,14 @@ if [ -z "$PSQL_CONT" ]; then
 fi
 
 echo "Creating role $TARGET_ROLE if missing and recreating DB $TARGET_DB (owner=$TARGET_ROLE)..."
-docker compose exec -T postgres psql -U "$PSQL_USER" -d postgres -v ON_ERROR_STOP=1 <<SQL
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$TARGET_ROLE') THEN
-    CREATE ROLE $TARGET_ROLE LOGIN;
-  END IF;
-END$$;
-SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$TARGET_DB';
-DROP DATABASE IF EXISTS $TARGET_DB;
-CREATE DATABASE $TARGET_DB OWNER $TARGET_ROLE;
-SQL
+# Create role if missing (shell-guarded to avoid $$ expansion issues)
+if ! docker compose exec -T postgres psql -U "$PSQL_USER" -d postgres -Atc "SELECT 1 FROM pg_roles WHERE rolname='${TARGET_ROLE}'" | grep -q 1; then
+  docker compose exec -T postgres psql -U "$PSQL_USER" -d postgres -c "CREATE ROLE ${TARGET_ROLE} LOGIN"
+fi
+# Recreate database owned by role
+docker compose exec -T postgres psql -U "$PSQL_USER" -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${TARGET_DB}';" || true
+docker compose exec -T postgres psql -U "$PSQL_USER" -d postgres -c "DROP DATABASE IF EXISTS ${TARGET_DB};"
+docker compose exec -T postgres psql -U "$PSQL_USER" -d postgres -c "CREATE DATABASE ${TARGET_DB} OWNER ${TARGET_ROLE};"
 
 echo "Filtering schema-only from: $DBFILE"
 TMP_SCHEMA=$(mktemp)
