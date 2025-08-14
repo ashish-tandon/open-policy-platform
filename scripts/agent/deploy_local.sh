@@ -31,6 +31,9 @@ for i in $(seq 1 60); do
 	if [[ $i -eq 60 ]]; then echo "\nTimed out waiting for API" && exit 1; fi
 done
 
+# Initialize scrapers DB tables (idempotent)
+bash scripts/agent/init_scrapers_db.sh || true
+
 # Smoke test
 bash scripts/smoke-test.sh || true
 

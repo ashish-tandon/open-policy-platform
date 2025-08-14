@@ -3,8 +3,10 @@
 Initialize scrapers database schema (idempotent).
 Creates minimal tables used by monitoring and future writes.
 """
+import os
+from typing import Optional
+from sqlalchemy import create_engine
 from sqlalchemy import text as sql_text
-from backend.config.database import scrapers_engine
 
 DDL = """
 CREATE TABLE IF NOT EXISTS scraper_results (
@@ -40,8 +42,28 @@ CREATE TABLE IF NOT EXISTS scraper_runs (
 );
 """
 
+def _get_env_url() -> Optional[str]:
+    url = os.getenv("SCRAPERS_DATABASE_URL") or os.getenv("DATABASE_URL") or os.getenv("APP_DATABASE_URL")
+    if url:
+        return url
+    host = os.getenv("DB_HOST", "localhost")
+    port = os.getenv("DB_PORT", "5432")
+    name = os.getenv("DB_NAME", "openpolicy_scrapers")
+    user = os.getenv("DB_USER", os.getenv("DB_USERNAME", "postgres"))
+    pwd = os.getenv("DB_PASSWORD", "")
+    if pwd:
+        return f"postgresql://{user}:{pwd}@{host}:{port}/{name}"
+    return f"postgresql://{user}@{host}:{port}/{name}"
+
+def _create_engine():
+    url = _get_env_url()
+    if not url:
+        raise RuntimeError("No database URL configured for scrapers DB")
+    return create_engine(url, pool_pre_ping=True)
+
 def main() -> int:
-    with scrapers_engine.begin() as conn:
+    engine = _create_engine()
+    with engine.begin() as conn:
         for stmt in [s for s in DDL.split(";\n") if s.strip()]:
             conn.execute(sql_text(stmt))
     print("Scrapers DB initialized.")
