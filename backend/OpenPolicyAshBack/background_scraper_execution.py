@@ -24,6 +24,7 @@ from enum import Enum
 import subprocess
 import signal
 import psutil
+import shutil
 
 # Add scrapers path to Python path
 scrapers_root = Path(__file__).resolve().parents[2] / "scrapers" / "scrapers-ca"
@@ -174,18 +175,34 @@ class BackgroundScraperExecution:
             scraper_full_path = self.base_path / scraper_path
             
             # Resolve writable data directory
-            data_root = Path(os.getenv("SCRAPERS_DATA_DIR", "/scrapers/data"))
+            data_root = Path(os.getenv("SCRAPERS_DATA_DIR", "/app/scrapers-data"))
             run_dir = data_root / datetime.now().strftime("%Y%m%d_%H%M%S") / scraper_full_path.name
             run_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Run the scraper using the testing framework
+
+            # Copy source to writable work directory so framework can write ./data
+            try:
+                # Map repo path scrapers/... to container /scrapers/... source
+                source_root = Path("/scrapers")
+                rel = Path(scraper_path)
+                if rel.parts and rel.parts[0] == "scrapers":
+                    rel = rel.relative_to("scrapers")
+                source_path = source_root / rel
+                work_src = run_dir / "src"
+                shutil.copytree(source_path, work_src, dirs_exist_ok=True)
+            except Exception as copy_err:
+                execution.status = ScraperStatus.FAILED
+                execution.error_count += 1
+                execution.last_error = f"copy failed: {copy_err}"
+                self.logger.error(f"❌ Copy failed for {execution.name}: {copy_err}")
+                return False
+
+            # Run the scraper using the testing framework against the writable copy
             cmd = [
                 sys.executable,
                 "scraper_testing_framework.py",
-                "--scraper-path", str(scraper_full_path),
+                "--scraper-path", str(work_src),
                 "--max-records", "10",
-                "--timeout", "300",
-                "--output-dir", str(run_dir)
+                "--timeout", "300"
             ]
             
             # Start the process
