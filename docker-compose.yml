@@ -83,6 +83,7 @@ services:
     image: mher/flower:latest
     environment:
       - FLOWER_BROKER=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
     ports:
       - "5555:5555"
     depends_on:
@@ -99,6 +100,8 @@ services:
       - DB_NAME=openpolicy_scrapers
       - DB_USER=openpolicy
       - DB_PASSWORD=openpolicy123
+    volumes:
+      - ./scrapers:/scrapers:ro
     depends_on:
       postgres:
         condition: service_healthy
