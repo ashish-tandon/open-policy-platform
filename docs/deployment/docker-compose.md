@@ -1,20 +1,19 @@
 # Docker Compose Deployment
 
-Compose file: `infrastructure/docker/docker-compose.yml`
+- API: 8000
+- Web: 5173
+- Postgres: 5432
+- Redis: 6379
+- Prometheus: 9090
+- Grafana: 3000
 
-Usage
-- Copy `.env` to production location with required variables
-- Run: `docker compose -f infrastructure/docker/docker-compose.yml up -d --build`
+A Postgres init file creates logical DBs: `openpolicy_app`, `openpolicy_scrapers`, `openpolicy_auth`.
 
-Services
-- api: FastAPI service (port 8000)
-- db: PostgreSQL 14 (port 5432)
-- (optional) web: placeholder for building/serving the frontend
+Scraper Runner is a dedicated container that schedules category runs using `background_scraper_execution.py`.
 
-Volumes
-- db-data: PostgreSQL data
-- logs: app logs directory (if mounted)
+Start:
 
-Notes
-- Adjust `ALLOWED_ORIGINS` and `ALLOWED_HOSTS` for production
-- Add `SCRAPER_REPORTS_DIR` and `SCRAPER_LOGS_DIR` volume mounts if needed
+```bash
+docker compose up -d --build
+bash scripts/smoke-test.sh
+```

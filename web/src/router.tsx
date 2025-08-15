@@ -21,6 +21,8 @@ import AdminScrapers from './pages/admin/scrapers';
 import AdminPolicies from './pages/admin/policies';
 import AdminSystem from './pages/admin/system';
 import AdminLogin from './pages/admin/login';
+import AdminApiDocs from './pages/admin/api-docs';
+import AdminEntities from './pages/admin/entities';
 
 // Protected Route Component
 import ProtectedRoute from './components/shared/ProtectedRoute';
@@ -110,12 +112,20 @@ export const router = createBrowserRouter([
             element: <AdminScrapers />,
           },
           {
+            path: '/admin/entities',
+            element: <AdminEntities />,
+          },
+          {
             path: '/admin/policies',
             element: <AdminPolicies />,
           },
           {
             path: '/admin/system',
             element: <AdminSystem />,
+          },
+          {
+            path: '/admin/api-docs',
+            element: <AdminApiDocs />,
           },
         ],
       },

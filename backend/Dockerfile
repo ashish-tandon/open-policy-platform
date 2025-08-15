@@ -7,6 +7,7 @@ FROM python:3.11-slim
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONPATH=/app
 
 # Set work directory
 WORKDIR /app
@@ -16,6 +17,9 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     curl \
     wget \
+    build-essential \
+    gcc \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -43,8 +47,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/health || exit 1
 
 # Default command
-<<<<<<< Current (Your changes)
-CMD ["python3", "deploy.py", "--env", "production"]
-=======
-CMD ["uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
->>>>>>> Incoming (Background Agent changes)
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

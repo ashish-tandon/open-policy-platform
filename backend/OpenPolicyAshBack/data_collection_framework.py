@@ -22,7 +22,8 @@ from enum import Enum
 import psutil
 
 # Add scrapers path to Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../scrapers/scrapers-ca'))
+scrapers_root = Path(__file__).resolve().parents[2] / "scrapers" / "scrapers-ca"
+sys.path.insert(0, str(scrapers_root))
 
 # Database imports
 from sqlalchemy import create_engine, text

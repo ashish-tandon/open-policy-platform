@@ -3,7 +3,7 @@ Enhanced Scrapers Router
 Provides comprehensive scraper management, execution, and monitoring functionality
 """
 
-from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Query
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import subprocess
@@ -11,6 +11,7 @@ import json
 import os
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from sqlalchemy import text as sql_text
 
 from ..dependencies import get_db, require_admin
 from ..config import settings
@@ -35,7 +36,7 @@ class ScraperStatus(BaseModel):
     error_count: int
 
 @router.get("/")
-async def get_scrapers(db: Session = Depends(get_db)):
+async def get_scrapers(request: Request, db: Session = Depends(get_db)):
     """Get comprehensive list of available scrapers with status"""
     try:
         # Read scraper inventory
@@ -74,11 +75,12 @@ async def get_scrapers(db: Session = Depends(get_db)):
             all_scrapers.extend(scrapers)
         
         # Get recent status from reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
+        scraper_files = [f for f in os.listdir(reports_dir) if f.startswith('scraper_test_report_')]
         if scraper_files:
             latest_report = max(scraper_files)
             try:
-                with open(latest_report, 'r') as f:
+                with open(os.path.join(reports_dir, latest_report), 'r') as f:
                     report_data = json.load(f)
                 
                 # Update status from report
@@ -104,7 +106,7 @@ async def get_scrapers(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Error retrieving scrapers: {str(e)}")
 
 @router.get("/categories")
-async def get_scraper_categories(db: Session = Depends(get_db)):
+async def get_scraper_categories(request: Request, db: Session = Depends(get_db)):
     """Get scraper categories with statistics"""
     try:
         categories = {
@@ -129,11 +131,12 @@ async def get_scraper_categories(db: Session = Depends(get_db)):
                     categories[current_category]["count"] += 1
         
         # Get status from reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
+        scraper_files = [f for f in os.listdir(reports_dir) if f.startswith('scraper_test_report_')]
         if scraper_files:
             latest_report = max(scraper_files)
             try:
-                with open(latest_report, 'r') as f:
+                with open(os.path.join(reports_dir, latest_report), 'r') as f:
                     report_data = json.load(f)
                 
                 # Calculate category statistics
@@ -190,11 +193,12 @@ async def run_scraper(
         raise HTTPException(status_code=500, detail=f"Error initiating scraper execution: {str(e)}")
 
 @router.get("/{scraper_id}/status")
-async def get_scraper_status(scraper_id: str, db: Session = Depends(get_db)):
+async def get_scraper_status(scraper_id: str, request: Request, db: Session = Depends(get_db)):
     """Get detailed status of a specific scraper"""
     try:
         # Find scraper in reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
+        scraper_files = [f for f in os.listdir(reports_dir) if f.startswith('scraper_test_report_')]
         
         scraper_status = {
             "scraper_id": scraper_id,
@@ -211,7 +215,7 @@ async def get_scraper_status(scraper_id: str, db: Session = Depends(get_db)):
         if scraper_files:
             latest_report = max(scraper_files)
             try:
-                with open(latest_report, 'r') as f:
+                with open(os.path.join(reports_dir, latest_report), 'r') as f:
                     report_data = json.load(f)
                 
                 # Find scraper in results
@@ -231,10 +235,11 @@ async def get_scraper_status(scraper_id: str, db: Session = Depends(get_db)):
                 pass
         
         # Get execution history from logs
-        log_files = [f for f in os.listdir('.') if f.endswith('.log') and 'scraper' in f]
+        logs_dir = getattr(request.app.state, "scraper_logs_dir", os.getcwd())
+        log_files = [f for f in os.listdir(logs_dir) if f.endswith('.log') and 'scraper' in f]
         for log_file in sorted(log_files, reverse=True)[:5]:
             try:
-                with open(log_file, 'r') as f:
+                with open(os.path.join(logs_dir, log_file), 'r') as f:
                     lines = f.readlines()
                     for line in lines:
                         if scraper_id.lower() in line.lower():
@@ -261,11 +266,12 @@ async def get_scraper_logs(
         logs = []
         
         # Search for scraper in log files
-        log_files = [f for f in os.listdir('.') if f.endswith('.log') and 'scraper' in f]
+        logs_dir = getattr(request.app.state, "scraper_logs_dir", os.getcwd())
+        log_files = [f for f in os.listdir(logs_dir) if f.endswith('.log') and 'scraper' in f]
         
         for log_file in sorted(log_files, reverse=True)[:10]:
             try:
-                with open(log_file, 'r') as f:
+                with open(os.path.join(logs_dir, log_file), 'r') as f:
                     lines = f.readlines()
                     
                     for line in lines:
@@ -334,6 +340,90 @@ async def run_scrapers_by_category(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error executing category scrapers: {str(e)}")
 
+@router.post("/run/record/{category}")
+async def record_category_run(category: str):
+    """Record a category run in the scrapers DB (best-effort). Returns run_id."""
+    try:
+        try:
+            from ...config.database import scrapers_engine
+        except Exception:
+            scrapers_engine = None
+        run_id = None
+        if scrapers_engine is not None:
+            with scrapers_engine.begin() as conn:
+                row = conn.execute(sql_text(
+                    """
+                    INSERT INTO scraper_runs (category, status) VALUES (:cat, :st) RETURNING id
+                    """
+                ), {"cat": category, "st": "started"}).fetchone()
+                if row:
+                    run_id = int(row[0])
+        return {"category": category, "run_id": run_id}
+    except Exception as e:
+        return {"category": category, "run_id": None, "error": str(e)}
+
+@router.post("/run/dev/{category}")
+async def run_category_dev(category: str, current_user = Depends(require_admin)):
+    """Trigger the dev category runner: records run, executes scanner, updates run."""
+    try:
+        cmd = [
+            "python",
+            "scripts/run_category.py",
+            "--category",
+            category,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        return {
+            "category": category,
+            "returncode": result.returncode,
+            "stdout": result.stdout[-500:],
+            "stderr": result.stderr[-500:],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running dev category: {e}")
+
+@router.post("/run/full/{category}")
+async def run_category_full(category: str, retries: int = 2, max_records: int = 10, current_user = Depends(require_admin)):
+    """Trigger the full category runner with retries/backoff and attempt tracking."""
+    try:
+        cmd = [
+            "python",
+            "scripts/run_full_category.py",
+            "--category",
+            category,
+            "--retries",
+            str(int(retries)),
+            "--max-records",
+            str(int(max_records)),
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=1800)
+        return {
+            "category": category,
+            "returncode": result.returncode,
+            "stdout": result.stdout[-1000:],
+            "stderr": result.stderr[-1000:],
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error running full category: {e}")
+
+@router.post("/queue/full/{category}")
+async def queue_category_full(category: str, retries: int = 2, max_records: int = 10, current_user = Depends(require_admin)):
+    """Queue the full category runner as a Celery task (requires workers)."""
+    try:
+        try:
+            from ..celery_app import celery_app
+        except Exception as e:
+            raise HTTPException(status_code=503, detail=f"Celery unavailable: {e}")
+        task = celery_app.send_task(
+            "scrapers.run_category",
+            args=[category, int(retries), int(max_records)],
+        )
+        return {"task_id": task.id, "category": category}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error queueing full category: {e}")
+
 @router.get("/performance")
 async def get_scraper_performance(db: Session = Depends(get_db)):
     """Get overall scraper performance metrics"""
@@ -396,8 +486,11 @@ async def run_scraper_task(execution: ScraperExecution):
     try:
         import subprocess
         
+        framework_path = os.path.join(os.getcwd(), "OpenPolicyAshBack", "scraper_testing_framework.py")
+        if not os.path.exists(framework_path):
+            framework_path = "scraper_testing_framework.py"
         cmd = [
-            "python", "scraper_testing_framework.py",
+            "python", framework_path,
             "--max-sample-records", str(execution.max_records),
             "--verbose"
         ]

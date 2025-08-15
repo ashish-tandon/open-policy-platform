@@ -1,22 +1,20 @@
-FROM ubuntu:18.04
+FROM python:3.11-slim
 
-ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1 \
+	PYTHONDONTWRITEBYTECODE=1 \
+	DEBIAN_FRONTEND=noninteractive
 
-# Base setup
-RUN apt-get -y update
-# PostgreSQL
-RUN apt-get -y install postgresql libpq-dev postgresql-client postgresql-client-common gdal-bin postgresql-contrib postgis
-# Python
-RUN apt-get -y install python3 python3-pip python3-dev build-essential python3-invoke python3-lxml python3-unidecode python3-regex libxml2-dev libxslt-dev lib32z1-dev git sudo
-RUN apt-get clean
-RUN pip3 install virtualenv virtualenvwrapper ndg_httpsclient flake8
-
-# .bashrc
-RUN echo 'export WORKON_HOME=$HOME/.virtualenvs' >> $HOME/.bashrc
-RUN echo 'export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3.6' >> $HOME/.bashrc
-RUN echo 'export PROJECT_HOME=/src/scrapers-ca' >> $HOME/.bashrc
-RUN echo 'source /usr/local/bin/virtualenvwrapper.sh' >> $HOME/.bashrc
-
-RUN mkdir /src
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	build-essential \
+	libxml2-dev libxslt1-dev zlib1g-dev \
+	curl ca-certificates git \
+	&& rm -rf /var/lib/apt/lists/*
 
 WORKDIR /src/scrapers-ca
+
+COPY ../requirements.in ./requirements.in
+RUN pip install --no-cache-dir -r requirements.in || true
+
+COPY .. /src/scrapers-ca
+
+CMD ["python", "-c", "print('scrapers-ca container ready'); import time; time.sleep(3600)"]

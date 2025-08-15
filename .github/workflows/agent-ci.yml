@@ -1,0 +1,53 @@
+name: Agent Deploy and Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_workers:
+        description: 'Also run workers profile checks'
+        required: false
+        default: 'false'
+
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Build web
+        run: |
+          cd web
+          npm ci
+          npm run build
+
+      - name: Build API image
+        run: docker build -t openpolicy-backend:ci ./backend
+
+      - name: Compose up (postgres, api)
+        run: |
+          docker compose up -d postgres api
+          sleep 15
+
+      - name: Health checks
+        run: |
+          curl -fsS http://localhost:8000/api/v1/health
+          curl -fsS http://localhost:8000/api/v1/health/detailed
+
+      - name: Workers (optional)
+        if: ${{ github.event.inputs.run_workers == 'true' }}
+        run: |
+          docker compose --profile workers up -d redis celery-worker
+          sleep 5
+          curl -fsS http://localhost:8000/api/v1/admin/workers/status
+
+

@@ -17,6 +17,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -38,6 +43,15 @@ jobs:
           cd backend
           pytest --cov=. --cov-report=term-missing --cov-fail-under=50 || true
 
+      - name: Build web
+        run: |
+          cd web
+          npm ci
+          npm run build
+
+      - name: Validate ports
+        run: bash scripts/validate-ports.sh
+
       - name: Check docs links
         run: bash scripts/check-docs-links.sh
 
@@ -56,6 +70,15 @@ r = c.get('/api/v1/health/detailed'); assert r.status_code == 200
 r = c.get('/api/v1/dashboard/system'); assert r.status_code == 200
 print('Smoke tests passed')
 PY
+
+      - name: Docker build backend
+        run: docker build -t openpolicy-backend:ci ./backend
+
+      - name: Compose up for smoke
+        run: |
+          docker compose up -d --build postgres api
+          sleep 15
+          bash scripts/smoke-test.sh
 
       - name: Upload OpenAPI artifact
         uses: actions/upload-artifact@v4

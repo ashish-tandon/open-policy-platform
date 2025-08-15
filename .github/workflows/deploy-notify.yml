@@ -1,0 +1,19 @@
+name: Notify Deployment Repo
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Send repository_dispatch
+        if: ${{ success() }}
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ secrets.DEPLOYMENT_REPO_TOKEN }}
+          repository: your-org/deployment-repo
+          event-type: openpolicy-api-updated
+          client-payload: '{"image":"ghcr.io/${{ github.repository_owner }}/openpolicy-api:${{ github.sha }}"}'

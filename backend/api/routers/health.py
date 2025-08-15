@@ -120,14 +120,10 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         # Test database connection
         db_status = "healthy"
         try:
-            result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-                "-c", "SELECT 1;",
-                "-t", "-A"
-            ], capture_output=True, text=True, timeout=10)
-            
-            if result.returncode != 0:
-                db_status = f"unhealthy: {result.stderr}"
+            from sqlalchemy import text as sql_text
+            from backend.config.database import engine
+            with engine.connect() as conn:
+                conn.execute(sql_text("SELECT 1"))
         except Exception as e:
             db_status = f"unhealthy: {str(e)}"
         
@@ -177,55 +173,44 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
     """Database-specific health check"""
     try:
         # Test basic connectivity
-        connectivity_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT 1;",
-            "-t", "-A"
-        ], capture_output=True, text=True, timeout=10)
-        
-        if connectivity_result.returncode != 0:
+        try:
+            from sqlalchemy import text as sql_text
+            from backend.config.database import engine
+            with engine.connect() as conn:
+                conn.execute(sql_text("SELECT 1"))
+        except Exception as e:
             return {
                 "status": "unhealthy",
                 "connectivity": "failed",
-                "error": connectivity_result.stderr,
+                "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
         
-        # Get database size
-        size_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT pg_size_pretty(pg_database_size('openpolicy'));",
-            "-t", "-A"
-        ], capture_output=True, text=True, timeout=10)
-        
+        # Get database size and counts using SQL
         db_size = "Unknown"
-        if size_result.returncode == 0 and size_result.stdout.strip():
-            db_size = size_result.stdout.strip()
-        
-        # Get table count
-        table_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';",
-            "-t", "-A"
-        ], capture_output=True, text=True, timeout=10)
-        
         table_count = 0
-        if table_result.returncode == 0 and table_result.stdout.strip():
-            table_count = int(table_result.stdout.strip())
-        
-        # Get record count for main tables
         politician_count = 0
         try:
-            politician_result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-                "-c", "SELECT COUNT(*) FROM core_politician;",
-                "-t", "-A"
-            ], capture_output=True, text=True, timeout=10)
-            
-            if politician_result.returncode == 0 and politician_result.stdout.strip():
-                politician_count = int(politician_result.stdout.strip())
-        except:
-            pass
+            with engine.connect() as conn:
+                size_row = conn.execute(sql_text("SELECT pg_size_pretty(pg_database_size(current_database()));")).fetchone()
+                if size_row and size_row[0]:
+                    db_size = size_row[0]
+                table_row = conn.execute(sql_text("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")).fetchone()
+                if table_row and table_row[0] is not None:
+                    table_count = int(table_row[0])
+                try:
+                    pol_row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;")).fetchone()
+                    if pol_row and pol_row[0] is not None:
+                        politician_count = int(pol_row[0])
+                except Exception:
+                    pass
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "connectivity": "failed",
+                "error": str(e),
+                "timestamp": datetime.now().isoformat()
+            }
         
         return {
             "status": "healthy",
@@ -248,7 +233,17 @@ async def scraper_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Scraper-specific health check"""
     try:
         # Check for scraper reports
-        scraper_files = [f for f in os.listdir('.') if f.startswith('scraper_test_report_')]
+        reports_dir = getattr(router, "app", None)
+        reports_path = os.getcwd()
+        try:
+            # access FastAPI app state if available
+            from fastapi import Request  # type: ignore
+        except Exception:
+            pass
+        # Fallback to env-configured dir via settings
+        if hasattr(settings, "scraper_reports_dir") and settings.scraper_reports_dir:
+            reports_path = settings.scraper_reports_dir
+        scraper_files = [f for f in os.listdir(reports_path) if f.startswith('scraper_test_report_')]
         
         if not scraper_files:
             return {
@@ -264,7 +259,7 @@ async def scraper_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
         # Get latest report
         latest_report = max(scraper_files)
         try:
-            with open(latest_report, 'r') as f:
+            with open(os.path.join(reports_path, latest_report), 'r') as f:
                 report_data = json.load(f)
             
             summary = report_data.get('summary', {})
@@ -483,16 +478,18 @@ async def health_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
         db_connected = False
         politician_count = 0
         try:
-            result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-                "-c", "SELECT COUNT(*) FROM core_politician;",
-                "-t", "-A"
-            ], capture_output=True, text=True, timeout=10)
-            
-            if result.returncode == 0 and result.stdout.strip():
+            from sqlalchemy import text as sql_text
+            from backend.config.database import engine
+            with engine.connect() as conn:
+                conn.execute(sql_text("SELECT 1"))
                 db_connected = True
-                politician_count = int(result.stdout.strip())
-        except:
+                try:
+                    pol_row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;")); pol_row = pol_row.fetchone()
+                    if pol_row and pol_row[0] is not None:
+                        politician_count = int(pol_row[0])
+                except Exception:
+                    pass
+        except Exception:
             pass
         
         # Scraper metrics

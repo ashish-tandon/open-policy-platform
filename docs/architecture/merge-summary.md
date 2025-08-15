@@ -192,15 +192,11 @@ Each component maintains its original setup instructions in their respective REA
 4. **Streamlined Deployment**: Unified deployment scripts
 5. **Reduced Complexity**: Single repository to manage
 
+## Containers and Ports (Unified)
+- API 8000, Web 5173, Postgres 5432, Redis 6379, Prometheus 9090, Grafana 3000
+- Added `scraper-runner` container to standardize scraper scheduling and output
+- Postgres init SQL creates logical DBs for app/scrapers/auth
+
 ## 📞 Support
 
-- **Main Documentation**: `README.md`
-- **Merge Details**: `MERGE_DOCUMENTATION.md`
-- **Component Docs**: Individual README files in each directory
-- **Setup Help**: `setup.sh` script with detailed instructions
-
----
-
-**Merge Status**: ✅ **COMPLETED SUCCESSFULLY**
-
-All repositories have been successfully merged with complete preservation of original code and functionality. The unified platform is ready for development and deployment.
+- **Main Documentation**: `

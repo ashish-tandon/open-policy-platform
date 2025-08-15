@@ -147,3 +147,33 @@ Status: Ready for execution
 - All endpoints verifiable and documented; frontend consumes them
 - Docs index has no broken links; single source of truth enforced
 - CI green with docs check; OpenAPI exported
+
+# Scraper Execution Plan (Master)
+
+## Categories & Triggers
+- Federal (parliamentary): daily at 06:00; outputs: bills, representatives, committees; DB: openpolicy_scrapers
+- Provincial: weekly Monday 07:00; outputs: representatives; DB: openpolicy_scrapers
+- City (municipal): monthly 1st 08:00; outputs: representatives; DB: openpolicy_scrapers
+- Civic: daily 06:15; outputs: datasets; DB: openpolicy_scrapers
+- Update (maintenance): continuous 2h; outputs: housekeeping; DB: openpolicy_scrapers
+
+## Execution
+- Container: `scraper-runner` executes `background_scraper_execution.py`
+- Logs: `backend/OpenPolicyAshBack/logs/*`
+- Reports: `scraper_test_report_*.json`
+
+## Output Schema (summary)
+- representatives(name, role, party, district, email, phone, image, source)
+- bills(identifier, title, status, introduced_date, last_action)
+- committees(name, jurisdiction, members[])
+
+## Dependencies
+- Postgres (openpolicy_scrapers)
+- Network access to source sites
+
+## Health
+- API `/api/v1/health/scrapers` reads latest report and aggregates status
+
+## Canonical Run Plan
+
+See `backend/config/scraper_plan.py` for triggers, expected runtimes, dependencies, and outputs per category.

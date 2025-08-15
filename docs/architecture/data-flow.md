@@ -1,39 +1,21 @@
-# Data Flow Plan
+# Data Flow (Scraper → DB → API → UI)
 
-## Sources
-- Scrapers (reports/logs, optional DB writes)
-- PostgreSQL (canonical persisted data)
+- Scrapers (runner): `backend/OpenPolicyAshBack/background_scraper_execution.py`
+  - Categories: parliamentary, provincial, municipal, civic, update
+  - Writes reports: `scraper_test_report_*.json`
+  - Target DB: `openpolicy_scrapers`
 
-## Ingestion
-- Scrapers collect data → write to staging (files) and/or DB tables
-- Reports/logs: `scraper_test_report_*.json`, `collection_report_*.json`, `*.log`
+- Database
+  - PostgreSQL (multi-DB via init SQL)
+  - Access via SQLAlchemy engine in `backend/config/database.py`
 
-## Storage
-- PostgreSQL schema (key tables): `core_politician`, `bills_bill`, `hansards_statement`, `core_organization`, `core_membership`, `bills_membervote`
+- API (FastAPI)
+  - Endpoints:
+    - `/api/v1/scrapers` (list, status)
+    - `/api/v1/scrapers/categories` (category summary)
+    - `/api/v1/health/scrapers` (aggregated health)
+  - Reads latest report JSON and DB metrics
 
-## Serving
-- FastAPI reads from DB for policies/data endpoints
-- FastAPI reads reports/logs for scrapers/monitoring endpoints
-- Frontend consumes API only (`VITE_API_URL`)
-
-## Flows
-1. Scrape run → report generated → API `/api/v1/scrapers/*` reflects status
-2. Data load/migration → DB updated → API `/api/v1/*` surfaces data
-3. Admin operations (backup/restart) → logs/files → API returns confirmation and log info
-
-## Contracts
-- API contract: `docs/api/endpoints.md` + `docs/api/schemas.md`
-- Report shapes: fields used by API (`summary`, `detailed_results` with `name`, `category`, `status`, `timestamp`, `records_collected`, `error_count`)
-
-## SLAs
-- Health endpoints available 99.9%
-- Policy list/search P95 < 500ms (with caching)
-
-## Observability
-- Health: `/api/v1/health/*`
-- Logs: `/api/v1/admin/logs`, `/api/v1/scrapers/logs`
-
-## Failure modes & handling
-- DB unavailable → `detailed` health shows `unhealthy`, API returns 5xx for DB-backed routes
-- Missing reports → scraper health returns `warning` with last known info
-- High CPU/memory/disk → health escalates to `warning`/`unhealthy`
+- UI (Web)
+  - Pages: `web/src/pages/admin/scrapers.tsx`, `web/src/pages/public/admin/scrapers.tsx`
+  - Calls API endpoints and renders categories + scrapers tables

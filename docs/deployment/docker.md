@@ -1,20 +1,21 @@
-# Docker Deployment (Optional)
+# Docker Deployment
 
-## Compose example (to create)
-- Services: api, postgres (optional), nginx (optional)
-- Volumes: db data, logs, backups, exports
-- Networks: internal bridge
+## Ports
+- API: 8000
+- Web: 5173
+- DB: 5432
+- Redis: 6379
+- Prometheus: 9090
+- Grafana: 3000
 
-## API container
-- Command: `uvicorn backend.api.main:app --host 0.0.0.0 --port 8000 --workers 2`
-- Env: from `.env`
-- Healthcheck: curl `/api/v1/health`
+## Order
+1) postgres (with init SQL)
+2) api (health at /api/v1/health)
+3) web
+4) scraper-runner (depends on postgres)
 
-## Frontend
-- Build image from web app and serve via nginx
-
-## Postgres
-- Mount volume; set POSTGRES_* env
-
-## Next steps
-- Provide `docker-compose.yml` and `Dockerfile` samples
+## Commands
+```bash
+docker compose up -d --build
+bash scripts/smoke-test.sh
+```

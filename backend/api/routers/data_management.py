@@ -11,6 +11,8 @@ import csv
 import io
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from sqlalchemy import text as sql_text
+import os
 
 router = APIRouter(prefix="/api/v1/data", tags=["data-management"])
 
@@ -20,6 +22,12 @@ class TableInfo(BaseModel):
     record_count: int
     size_mb: float
     last_updated: Optional[str]
+
+class ColumnInfo(BaseModel):
+    table_name: str
+    column_name: str
+    data_type: str
+    is_nullable: bool
 
 class DataExportRequest(BaseModel):
     table_name: str
@@ -32,47 +40,69 @@ class DataAnalysisResult(BaseModel):
     results: Dict[str, Any]
     timestamp: str
 
+@router.get("/schema", response_model=Dict[str, List[ColumnInfo]])
+async def get_schema():
+    """Introspect current database schema (public schema). Returns empty map if unavailable."""
+    try:
+        try:
+            from ...config.database import engine
+        except Exception:
+            return {}
+        schema: Dict[str, List[ColumnInfo]] = {}
+        try:
+            with engine.connect() as conn:
+                rows = conn.execute(sql_text(
+                    """
+                    SELECT table_name, column_name, data_type, is_nullable
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                    ORDER BY table_name, ordinal_position
+                    """
+                )).fetchall()
+        except Exception:
+            return {}
+        for r in rows:
+            t = r[0]
+            if t not in schema:
+                schema[t] = []
+            schema[t].append(ColumnInfo(
+                table_name=t,
+                column_name=str(r[1]),
+                data_type=str(r[2]),
+                is_nullable=(str(r[3]).upper() == 'YES')
+            ))
+        return schema
+    except Exception:
+        return {}
+
 @router.get("/tables", response_model=List[TableInfo])
 async def get_table_info():
     """Get information about all tables in the database"""
     try:
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", """
-            SELECT 
-                schemaname,
-                tablename,
-                n_tup_ins as record_count,
-                pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
-            FROM pg_stat_user_tables 
-            WHERE schemaname = 'public' 
-            ORDER BY n_tup_ins DESC;
-            """,
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
-        tables = []
-        if result.returncode == 0:
-            lines = result.stdout.strip().split('\n')
-            for line in lines:
-                if '|' in line:
-                    parts = line.split('|')
-                    if len(parts) >= 4:
-                        size_str = parts[3].strip()
-                        size_mb = 0.0
-                        if 'MB' in size_str:
-                            size_mb = float(size_str.replace(' MB', ''))
-                        elif 'GB' in size_str:
-                            size_mb = float(size_str.replace(' GB', '')) * 1024
-                        
-                        table_info = TableInfo(
-                            table_name=parts[1].strip(),
-                            record_count=int(parts[2].strip()) if parts[2].strip().isdigit() else 0,
-                            size_mb=size_mb,
-                            last_updated=datetime.now().isoformat()
-                        )
-                        tables.append(table_info)
-        
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        tables: List[TableInfo] = []
+        with engine.connect() as conn:
+            rows = conn.execute(sql_text(
+                """
+                SELECT relname AS table_name,
+                       COALESCE(n_live_tup, 0) AS record_count,
+                       pg_total_relation_size(relid) AS size_bytes
+                FROM pg_stat_user_tables
+                ORDER BY n_live_tup DESC;
+                """
+            )).fetchall()
+            for r in rows:
+                size_bytes = int(r[2] or 0)
+                size_mb = round(size_bytes / (1024 * 1024), 2)
+                tables.append(TableInfo(
+                    table_name=str(r[0]),
+                    record_count=int(r[1] or 0),
+                    size_mb=size_mb,
+                    last_updated=datetime.now().isoformat()
+                ))
         return tables
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting table info: {str(e)}")
@@ -90,29 +120,16 @@ async def get_table_records(
             'core_politician', 'bills_bill', 'hansards_statement',
             'bills_membervote', 'core_organization', 'core_membership'
         ]
-        
         if table_name not in valid_tables:
             raise HTTPException(status_code=400, detail="Invalid table name")
-        
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", f"SELECT * FROM {table_name} LIMIT {limit} OFFSET {offset};",
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Database error: {result.stderr}")
-        
-        # Parse the results
-        lines = result.stdout.strip().split('\n')
-        records = []
-        
-        for line in lines:
-            if line.strip():
-                # Simple CSV-like parsing
-                fields = line.split('|')
-                records.append(fields)
-        
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        query = sql_text(f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset")
+        with engine.connect() as conn:
+            result = conn.execute(query, {"limit": int(limit), "offset": int(offset)})
+            records = [list(map(lambda v: None if v is None else str(v), row)) for row in result.fetchall()]
         return {
             "table_name": table_name,
             "records": records,
@@ -120,6 +137,8 @@ async def get_table_records(
             "limit": limit,
             "offset": offset
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting table records: {str(e)}")
 
@@ -132,13 +151,10 @@ async def export_data(request: DataExportRequest, background_tasks: BackgroundTa
             'core_politician', 'bills_bill', 'hansards_statement',
             'bills_membervote', 'core_organization', 'core_membership'
         ]
-        
         if request.table_name not in valid_tables:
             raise HTTPException(status_code=400, detail="Invalid table name")
-        
         # Add export task to background
         background_tasks.add_task(export_data_background, request)
-        
         return {
             "message": "Export initiated",
             "table_name": request.table_name,
@@ -152,39 +168,32 @@ async def export_data(request: DataExportRequest, background_tasks: BackgroundTa
 async def analyze_politicians():
     """Analyze politician data"""
     try:
-        # Get politician statistics
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", """
-            SELECT 
-                COUNT(*) as total_politicians,
-                COUNT(DISTINCT party_name) as total_parties,
-                COUNT(DISTINCT district) as total_districts
-            FROM core_politician;
-            """,
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Database error: {result.stderr}")
-        
-        # Parse results
-        line = result.stdout.strip()
-        if '|' in line:
-            parts = line.split('|')
-            analysis = {
-                "total_politicians": int(parts[0].strip()) if parts[0].strip().isdigit() else 0,
-                "total_parties": int(parts[1].strip()) if parts[1].strip().isdigit() else 0,
-                "total_districts": int(parts[2].strip()) if parts[2].strip().isdigit() else 0
-            }
-        else:
-            analysis = {"error": "Could not parse results"}
-        
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        with engine.connect() as conn:
+            row = conn.execute(sql_text(
+                """
+                SELECT 
+                    COUNT(*) as total_politicians,
+                    COUNT(DISTINCT party_name) as total_parties,
+                    COUNT(DISTINCT district) as total_districts
+                FROM core_politician;
+                """
+            )).fetchone()
+        analysis = {
+            "total_politicians": int(row[0] or 0),
+            "total_parties": int(row[1] or 0),
+            "total_districts": int(row[2] or 0)
+        }
         return DataAnalysisResult(
             analysis_type="politicians",
             results=analysis,
             timestamp=datetime.now().isoformat()
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing politicians: {str(e)}")
 
@@ -192,39 +201,32 @@ async def analyze_politicians():
 async def analyze_bills():
     """Analyze bill data"""
     try:
-        # Get bill statistics
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", """
-            SELECT 
-                COUNT(*) as total_bills,
-                COUNT(DISTINCT session) as total_sessions,
-                COUNT(DISTINCT classification) as total_classifications
-            FROM bills_bill;
-            """,
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Database error: {result.stderr}")
-        
-        # Parse results
-        line = result.stdout.strip()
-        if '|' in line:
-            parts = line.split('|')
-            analysis = {
-                "total_bills": int(parts[0].strip()) if parts[0].strip().isdigit() else 0,
-                "total_sessions": int(parts[1].strip()) if parts[1].strip().isdigit() else 0,
-                "total_classifications": int(parts[2].strip()) if parts[2].strip().isdigit() else 0
-            }
-        else:
-            analysis = {"error": "Could not parse results"}
-        
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        with engine.connect() as conn:
+            row = conn.execute(sql_text(
+                """
+                SELECT 
+                    COUNT(*) as total_bills,
+                    COUNT(DISTINCT session) as total_sessions,
+                    COUNT(DISTINCT classification) as total_classifications
+                FROM bills_bill;
+                """
+            )).fetchone()
+        analysis = {
+            "total_bills": int(row[0] or 0),
+            "total_sessions": int(row[1] or 0),
+            "total_classifications": int(row[2] or 0)
+        }
         return DataAnalysisResult(
             analysis_type="bills",
             results=analysis,
             timestamp=datetime.now().isoformat()
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing bills: {str(e)}")
 
@@ -232,39 +234,32 @@ async def analyze_bills():
 async def analyze_hansards():
     """Analyze hansard (parliamentary debate) data"""
     try:
-        # Get hansard statistics
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", """
-            SELECT 
-                COUNT(*) as total_statements,
-                COUNT(DISTINCT speaker_name) as total_speakers,
-                COUNT(DISTINCT date) as total_dates
-            FROM hansards_statement;
-            """,
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Database error: {result.stderr}")
-        
-        # Parse results
-        line = result.stdout.strip()
-        if '|' in line:
-            parts = line.split('|')
-            analysis = {
-                "total_statements": int(parts[0].strip()) if parts[0].strip().isdigit() else 0,
-                "total_speakers": int(parts[1].strip()) if parts[1].strip().isdigit() else 0,
-                "total_dates": int(parts[2].strip()) if parts[2].strip().isdigit() else 0
-            }
-        else:
-            analysis = {"error": "Could not parse results"}
-        
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        with engine.connect() as conn:
+            row = conn.execute(sql_text(
+                """
+                SELECT 
+                    COUNT(*) as total_statements,
+                    COUNT(DISTINCT speaker_name) as total_speakers,
+                    COUNT(DISTINCT date) as total_dates
+                FROM hansards_statement;
+                """
+            )).fetchone()
+        analysis = {
+            "total_statements": int(row[0] or 0),
+            "total_speakers": int(row[1] or 0),
+            "total_dates": int(row[2] or 0)
+        }
         return DataAnalysisResult(
             analysis_type="hansards",
             results=analysis,
             timestamp=datetime.now().isoformat()
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error analyzing hansards: {str(e)}")
 
@@ -281,51 +276,33 @@ async def search_data(
             'core_politician', 'bills_bill', 'hansards_statement',
             'bills_membervote', 'core_organization', 'core_membership'
         ]
-        
         if table_name not in valid_tables:
             raise HTTPException(status_code=400, detail="Invalid table name")
-        
-        # Build search query based on table
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         if table_name == 'core_politician':
-            search_query = f"""
+            search_sql = f"""
             SELECT * FROM {table_name} 
-            WHERE name ILIKE '%{query}%' 
-            OR party_name ILIKE '%{query}%' 
-            OR district ILIKE '%{query}%'
-            LIMIT {limit};
+            WHERE name ILIKE :q OR party_name ILIKE :q OR district ILIKE :q
+            LIMIT :limit
             """
         elif table_name == 'bills_bill':
-            search_query = f"""
+            search_sql = f"""
             SELECT * FROM {table_name} 
-            WHERE title ILIKE '%{query}%' 
-            OR classification ILIKE '%{query}%'
-            LIMIT {limit};
+            WHERE title ILIKE :q OR classification ILIKE :q
+            LIMIT :limit
             """
         else:
-            search_query = f"""
+            search_sql = f"""
             SELECT * FROM {table_name} 
-            WHERE text ILIKE '%{query}%'
-            LIMIT {limit};
+            WHERE CAST({table_name}.id AS TEXT) ILIKE :q
+            LIMIT :limit
             """
-        
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", search_query,
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Database error: {result.stderr}")
-        
-        # Parse results
-        lines = result.stdout.strip().split('\n')
-        records = []
-        
-        for line in lines:
-            if line.strip():
-                fields = line.split('|')
-                records.append(fields)
-        
+        with engine.connect() as conn:
+            res = conn.execute(sql_text(search_sql), {"q": f"%{query}%", "limit": int(limit)})
+            records = [list(map(lambda v: None if v is None else str(v), row)) for row in res.fetchall()]
         return {
             "query": query,
             "table_name": table_name,
@@ -333,6 +310,8 @@ async def search_data(
             "total_found": len(records),
             "limit": limit
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error searching data: {str(e)}")
 
@@ -340,76 +319,74 @@ async def search_data(
 async def get_database_size():
     """Get database size information"""
     try:
-        result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", """
-            SELECT 
-                pg_size_pretty(pg_database_size('openpolicy')) as total_size,
-                pg_size_pretty(pg_total_relation_size('core_politician')) as politicians_size,
-                pg_size_pretty(pg_total_relation_size('bills_bill')) as bills_size,
-                pg_size_pretty(pg_total_relation_size('hansards_statement')) as hansards_size;
-            """,
-            "-t", "-A"
-        ], capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Database error: {result.stderr}")
-        
-        line = result.stdout.strip()
-        if '|' in line:
-            parts = line.split('|')
-            size_info = {
-                "total_size": parts[0].strip(),
-                "politicians_size": parts[1].strip(),
-                "bills_size": parts[2].strip(),
-                "hansards_size": parts[3].strip()
-            }
-        else:
-            size_info = {"error": "Could not parse results"}
-        
-        return size_info
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
+        with engine.connect() as conn:
+            row = conn.execute(sql_text(
+                "SELECT pg_size_pretty(pg_database_size(current_database()));"
+            )).fetchone()
+            total_size = row[0] if row and row[0] else "Unknown"
+            sizes = conn.execute(sql_text(
+                """
+                SELECT 
+                    'core_politician' as table, pg_size_pretty(pg_total_relation_size('core_politician')) as size
+                UNION ALL
+                SELECT 'bills_bill', pg_size_pretty(pg_total_relation_size('bills_bill'))
+                UNION ALL
+                SELECT 'hansards_statement', pg_size_pretty(pg_total_relation_size('hansards_statement'))
+                """
+            )).fetchall()
+            size_map = {str(r[0]): str(r[1]) for r in sizes}
+        return {
+            "total_size": total_size,
+            "politicians_size": size_map.get('core_politician', '0'),
+            "bills_size": size_map.get('bills_bill', '0'),
+            "hansards_size": size_map.get('hansards_statement', '0')
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error getting database size: {str(e)}")
 
 async def export_data_background(request: DataExportRequest):
-    """Background task to export data"""
+    """Background task to export data (json/csv) via SQLAlchemy"""
     try:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         export_file = f"export_{request.table_name}_{timestamp}"
-        
+        try:
+            from ...config.database import engine
+        except Exception as e:
+            # Can't export without DB
+            return
+        with engine.connect() as conn:
+            res = conn.execute(sql_text(f"SELECT * FROM {request.table_name}"))
+            rows = res.fetchall()
+            headers = res.keys()
         if request.format == "csv":
             export_file += ".csv"
-            cmd = [
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-                "-c", f"\\COPY {request.table_name} TO '{export_file}' CSV HEADER;"
-            ]
-        elif request.format == "json":
+            with open(export_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(list(headers))
+                for row in rows:
+                    writer.writerow([None if v is None else v for v in row])
+        else:  # json (default)
             export_file += ".json"
-            cmd = [
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-                "-c", f"\\COPY (SELECT row_to_json(t) FROM {request.table_name} t) TO '{export_file}';"
-            ]
-        else:  # sql
-            export_file += ".sql"
-            cmd = [
-                "pg_dump", "-h", "localhost", "-U", "ashishtandon", 
-                "-t", request.table_name, "openpolicy", "-f", export_file
-            ]
-        
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        
-        # Log the export result
+            dict_rows = [dict(zip(headers, row)) for row in rows]
+            with open(export_file, 'w') as f:
+                json.dump(dict_rows, f)
+        # Simple log
         log_file = f"export_log_{timestamp}.log"
         with open(log_file, 'w') as f:
             f.write(f"Export: {request.table_name}\n")
             f.write(f"Format: {request.format}\n")
             f.write(f"File: {export_file}\n")
-            f.write(f"Return code: {result.returncode}\n")
-            f.write(f"Output: {result.stdout}\n")
-            f.write(f"Error: {result.stderr}\n")
-        
     except Exception as e:
         # Log error
-        error_log = f"export_error_{timestamp}.log"
-        with open(error_log, 'w') as f:
-            f.write(f"Error exporting {request.table_name}: {str(e)}\n")
+        try:
+            error_log = f"export_error_{timestamp}.log"
+            with open(error_log, 'w') as f:
+                f.write(f"Error exporting {request.table_name}: {str(e)}\n")
+        except Exception:
+            pass

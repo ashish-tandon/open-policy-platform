@@ -27,6 +27,14 @@ const navLinks = [
     label: "About Us",
     url: "https://openpolicy.me/about-us/",
   },
+  {
+    label: "Admin",
+    url: "/admin/scrapers",
+  },
+  {
+    label: "Admin Entities",
+    url: "/admin/entities",
+  },
 ];
 
 const Navigation = () => {

@@ -48,15 +48,11 @@ async def get_dashboard_stats(
         # Database statistics
         db_stats: Dict[str, Any] = {}
         try:
-            result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-                "-c", "SELECT COUNT(*) FROM core_politician;",
-                "-t", "-A"
-            ], capture_output=True, text=True, timeout=10)
-            if result.returncode == 0 and result.stdout.strip():
-                db_stats["total_politicians"] = int(result.stdout.strip())
-            else:
-                logger.warning("DB stats query failed: rc=%s err=%s", result.returncode, result.stderr)
+            from sqlalchemy import text as sql_text
+            from ...config.database import engine
+            with engine.connect() as conn:
+                row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;")).fetchone()
+                db_stats["total_politicians"] = int(row[0]) if row and row[0] is not None else 0
         except Exception as e:
             logger.warning("DB stats error: %s", e)
             db_stats["total_politicians"] = 0
@@ -119,13 +115,14 @@ async def get_system_status(
     """Get detailed system status"""
     try:
         # Database status
-        db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT 1;",
-            "-t", "-A"
-        ], capture_output=True, text=True, timeout=10)
-        
-        database_status = "healthy" if db_result.returncode == 0 else "unhealthy"
+        try:
+            from sqlalchemy import text as sql_text
+            from ...config.database import engine
+            with engine.connect() as conn:
+                conn.execute(sql_text("SELECT 1"))
+            database_status = "healthy"
+        except Exception:
+            database_status = "unhealthy"
         
         # API status
         api_status = "healthy"
@@ -449,13 +446,12 @@ async def get_system_alerts(
             })
         
         # Database alert
-        db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT 1;",
-            "-t", "-A"
-        ], capture_output=True, text=True, timeout=10)
-        
-        if db_result.returncode != 0:
+        try:
+            from sqlalchemy import text as sql_text
+            from ...config.database import engine
+            with engine.connect() as conn:
+                conn.execute(sql_text("SELECT 1"))
+        except Exception:
             alerts.append({
                 "type": "critical",
                 "message": "Database connection failed",
@@ -563,3 +559,26 @@ async def create_backup(backup_request: SystemBackupRequest):
         error_log = f"backup_error_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
         with open(error_log, 'w') as f:
             f.write(f"Error during backup: {str(e)}\n")
+
+@router.get("/workers/ping")
+async def workers_ping(current_user = Depends(require_admin)):
+	try:
+		from ..celery_app import ping as celery_ping
+		res = celery_ping.delay()
+		return {"task_id": res.id}
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=f"Celery ping failed: {e}")
+
+@router.get("/workers/status")
+async def workers_status(current_user = Depends(require_admin)):
+	try:
+		from celery.app.control import Inspect
+		from ..celery_app import celery_app
+		insp = Inspect(app=celery_app)
+		return {
+			"active": insp.active() or {},
+			"registered": insp.registered() or {},
+			"scheduled": insp.scheduled() or {},
+		}
+	except Exception as e:
+		return {"error": str(e)}
