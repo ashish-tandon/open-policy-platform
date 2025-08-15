@@ -100,10 +100,10 @@ services:
       - DB_NAME=openpolicy_scrapers
       - DB_USER=openpolicy
       - DB_PASSWORD=openpolicy123
-      - SCRAPERS_DATA_DIR=/scrapers/data
+      - SCRAPERS_DATA_DIR=/app/scrapers-data
     volumes:
       - ./scrapers:/scrapers:ro
-      - ./scrapers-data:/scrapers/data:rw
+      - ./scrapers-data:/app/scrapers-data:rw
     depends_on:
       postgres:
         condition: service_healthy
