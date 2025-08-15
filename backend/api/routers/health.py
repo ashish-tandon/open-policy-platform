@@ -121,7 +121,6 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         db_status = "healthy"
         try:
             from sqlalchemy import text as sql_text
-            from ...config import settings  # noqa: F401
             from ...config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
