@@ -14,7 +14,7 @@ _latest_run_ts_by_category = Gauge("openpolicy_scraper_latest_run_category_times
 def _update_scraper_metrics() -> None:
 	try:
 		try:
-			from backend.config.database import scrapers_engine
+			from config.database import scrapers_engine
 		except Exception:
 			scrapers_engine = None
 		if scrapers_engine is None:

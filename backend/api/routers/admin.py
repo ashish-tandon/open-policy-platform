@@ -49,7 +49,7 @@ async def get_dashboard_stats(
         db_stats: Dict[str, Any] = {}
         try:
             from sqlalchemy import text as sql_text
-            from backend.config.database import engine
+            from config.database import engine
             with engine.connect() as conn:
                 row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;")).fetchone()
                 db_stats["total_politicians"] = int(row[0]) if row and row[0] is not None else 0
@@ -117,7 +117,7 @@ async def get_system_status(
         # Database status
         try:
             from sqlalchemy import text as sql_text
-            from backend.config.database import engine
+            from config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
             database_status = "healthy"
@@ -448,7 +448,7 @@ async def get_system_alerts(
         # Database alert
         try:
             from sqlalchemy import text as sql_text
-            from backend.config.database import engine
+            from config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
         except Exception:
