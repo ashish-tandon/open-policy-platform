@@ -30,7 +30,7 @@ scrapers_root = Path(__file__).resolve().parents[2] / "scrapers" / "scrapers-ca"
 sys.path.insert(0, str(scrapers_root))
 
 # Resolve writable data directory for outputs
-SCRAPERS_DATA_DIR = Path(os.getenv("SCRAPERS_DATA_DIR", "/scrapers/data")).resolve()
+SCRAPERS_DATA_DIR = Path(os.getenv("SCRAPERS_DATA_DIR", "/app/scrapers-data")).resolve()
 
 class ScraperStatus(Enum):
     RUNNING = "running"

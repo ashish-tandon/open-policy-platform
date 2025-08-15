@@ -3,12 +3,12 @@
 ## Paths
 - Sources (read-only inside runner): `/scrapers`
   - Mounted from repo: `./scrapers:/scrapers:ro`
-- Outputs (writable): `/scrapers/data`
-  - Mounted from host: `./scrapers-data:/scrapers/data:rw`
+- Outputs (writable): `/app/scrapers-data`
+  - Mounted from host: `./scrapers-data:/app/scrapers-data:rw`
 
 ## Structure
 - Runner creates per-scraper, per-run directories:
-  - `/scrapers/data/<scraper-name>/<YYYYMMDD_HHMMSS>/...`
+  - `/app/scrapers-data/<scraper-name>/<YYYYMMDD_HHMMSS>/...`
 - Logs for the runner live under `backend/OpenPolicyAshBack/logs/` inside the API image; compose does not currently map logs out.
 
 ## Retention
