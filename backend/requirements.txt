@@ -23,6 +23,10 @@ pydantic-settings==2.3.4
 flask-cors==4.0.1
 flask-restful==0.3.10
 
+# Task queue
+celery[redis]==5.3.6
+redis==5.0.4
+
 # Data processing
 pandas==2.2.2
 numpy==1.26.4

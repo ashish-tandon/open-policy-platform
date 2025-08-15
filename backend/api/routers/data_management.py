@@ -45,7 +45,7 @@ async def get_schema():
     """Introspect current database schema (public schema). Returns empty map if unavailable."""
     try:
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception:
             return {}
         schema: Dict[str, List[ColumnInfo]] = {}
@@ -80,7 +80,7 @@ async def get_table_info():
     """Get information about all tables in the database"""
     try:
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         tables: List[TableInfo] = []
@@ -123,7 +123,7 @@ async def get_table_records(
         if table_name not in valid_tables:
             raise HTTPException(status_code=400, detail="Invalid table name")
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         query = sql_text(f"SELECT * FROM {table_name} LIMIT :limit OFFSET :offset")
@@ -169,7 +169,7 @@ async def analyze_politicians():
     """Analyze politician data"""
     try:
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         with engine.connect() as conn:
@@ -202,7 +202,7 @@ async def analyze_bills():
     """Analyze bill data"""
     try:
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         with engine.connect() as conn:
@@ -235,7 +235,7 @@ async def analyze_hansards():
     """Analyze hansard (parliamentary debate) data"""
     try:
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         with engine.connect() as conn:
@@ -279,7 +279,7 @@ async def search_data(
         if table_name not in valid_tables:
             raise HTTPException(status_code=400, detail="Invalid table name")
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         if table_name == 'core_politician':
@@ -320,7 +320,7 @@ async def get_database_size():
     """Get database size information"""
     try:
         try:
-            from ...config.database import engine
+            from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
         with engine.connect() as conn:
@@ -356,7 +356,7 @@ async def export_data_background(request: DataExportRequest):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         export_file = f"export_{request.table_name}_{timestamp}"
         try:
-            from ...config.database import engine
+            from backend.config.database import engine
         except Exception as e:
             # Can't export without DB
             return
