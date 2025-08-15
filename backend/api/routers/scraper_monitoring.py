@@ -299,7 +299,7 @@ async def get_data_collection_stats(request: Request):
 	"""Get data collection statistics"""
 	try:
 		try:
-			from ..config.database import engine
+			from ...config.database import engine
 		except Exception:
 			from ..config import settings  # fallback
 			engine = None
@@ -451,7 +451,7 @@ async def get_database_status():
 	"""Get database status and record counts"""
 	try:
 		try:
-			from ..config.database import engine
+			from ...config.database import engine
 		except Exception:
 			engine = None
 		tables = []
