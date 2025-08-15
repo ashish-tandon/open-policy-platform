@@ -356,7 +356,7 @@ async def export_data_background(request: DataExportRequest):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         export_file = f"export_{request.table_name}_{timestamp}"
         try:
-            from ...config.database import engine
+            from backend.config.database import engine
         except Exception as e:
             # Can't export without DB
             return

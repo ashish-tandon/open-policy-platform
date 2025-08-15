@@ -61,7 +61,7 @@ async def get_latest_summary():
 	"""Return the latest scraper summary from scrapers DB if table exists."""
 	try:
 		try:
-			from ...config.database import scrapers_engine
+			from backend.config.database import scrapers_engine
 		except Exception:
 			scrapers_engine = None
 		if scrapers_engine is None:
@@ -100,7 +100,7 @@ async def list_runs(category: Optional[str] = None, status: Optional[str] = None
 	"""List recent scraper runs from scrapers DB"""
 	try:
 		try:
-			from ...config.database import scrapers_engine
+			from backend.config.database import scrapers_engine
 		except Exception:
 			scrapers_engine = None
 		if scrapers_engine is None:
@@ -143,7 +143,7 @@ async def latest_run(category: Optional[str] = None):
 	"""Fetch latest run, optionally filtered by category"""
 	try:
 		try:
-			from ...config.database import scrapers_engine
+			from backend.config.database import scrapers_engine
 		except Exception:
 			scrapers_engine = None
 		if scrapers_engine is None:
@@ -181,7 +181,7 @@ async def get_run(run_id: int):
 	"""Get a specific run by id"""
 	try:
 		try:
-			from ...config.database import scrapers_engine
+			from backend.config.database import scrapers_engine
 		except Exception:
 			scrapers_engine = None
 		if scrapers_engine is None:
@@ -213,7 +213,7 @@ async def list_run_attempts(run_id: int):
 	"""List attempts for a run id (if attempts table exists)"""
 	try:
 		try:
-			from ...config.database import scrapers_engine
+			from backend.config.database import scrapers_engine
 		except Exception:
 			scrapers_engine = None
 		if scrapers_engine is None:
@@ -299,7 +299,7 @@ async def get_data_collection_stats(request: Request):
 	"""Get data collection statistics"""
 	try:
 		try:
-			from ...config.database import engine
+			from backend.config.database import engine
 		except Exception:
 			from ..config import settings  # fallback
 			engine = None
@@ -451,7 +451,7 @@ async def get_database_status():
 	"""Get database status and record counts"""
 	try:
 		try:
-			from ...config.database import engine
+			from backend.config.database import engine
 		except Exception:
 			engine = None
 		tables = []
