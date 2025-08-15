@@ -29,6 +29,9 @@ import psutil
 scrapers_root = Path(__file__).resolve().parents[2] / "scrapers" / "scrapers-ca"
 sys.path.insert(0, str(scrapers_root))
 
+# Resolve writable data directory for outputs
+SCRAPERS_DATA_DIR = Path(os.getenv("SCRAPERS_DATA_DIR", "/scrapers/data")).resolve()
+
 class ScraperStatus(Enum):
     RUNNING = "running"
     STOPPED = "stopped"
@@ -63,6 +66,7 @@ class BackgroundScraperExecution:
         self.base_path = Path(__file__).parent.parent.parent
         self.logs_dir = Path(__file__).parent / "logs"
         self.logs_dir.mkdir(exist_ok=True)
+        SCRAPERS_DATA_DIR.mkdir(parents=True, exist_ok=True)
         
         # Setup logging
         self.setup_logging()
@@ -173,17 +177,18 @@ class BackgroundScraperExecution:
             # Get the full path to the scraper
             scraper_full_path = self.base_path / scraper_path
             
-            # Create data directory
-            data_dir = scraper_full_path / "data"
-            data_dir.mkdir(exist_ok=True)
+            # Create a unique run directory under SCRAPERS_DATA_DIR
+            run_dir = SCRAPERS_DATA_DIR / execution.name.replace(' ', '_').lower() / datetime.now().strftime('%Y%m%d_%H%M%S')
+            run_dir.mkdir(parents=True, exist_ok=True)
             
             # Run the scraper using the testing framework
             cmd = [
                 sys.executable, 
                 "scraper_testing_framework.py",
                 "--scraper-path", str(scraper_full_path),
-                "--max-records", "10",  # Collect 10 records for background execution
-                "--timeout", "300"  # 5 minute timeout
+                "--max-records", "10",
+                "--timeout", "300",
+                "--output-dir", str(run_dir)
             ]
             
             # Start the process
@@ -200,12 +205,12 @@ class BackgroundScraperExecution:
             
             # Wait for completion with timeout
             try:
-                stdout, stderr = process.communicate(timeout=300)  # 5 minute timeout
+                stdout, stderr = process.communicate(timeout=300)
                 
                 if process.returncode == 0:
                     execution.status = ScraperStatus.COMPLETED
-                    execution.records_collected = 10  # Assume 10 records collected
-                    self.logger.info(f"✅ Scraper completed: {execution.name}")
+                    execution.records_collected = 10  # Estimated
+                    self.logger.info(f"✅ Scraper completed: {execution.name} (output: {run_dir})")
                     return True
                 else:
                     execution.status = ScraperStatus.FAILED
