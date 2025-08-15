@@ -24,6 +24,7 @@ from enum import Enum
 import subprocess
 import signal
 import psutil
+import shutil
 
 # Add scrapers path to Python path
 scrapers_root = Path(__file__).resolve().parents[2] / "scrapers" / "scrapers-ca"
@@ -163,6 +164,35 @@ class BackgroundScraperExecution:
         
         self.logger.info(f"✅ Initialized {len(self.executions)} scraper executions")
 
+    def _resolve_source_path(self, scraper_path: str) -> Path:
+        """Prefer /scrapers mount as the source; fallback to repo copy under /app."""
+        rel = scraper_path.split('/', 1)[1] if scraper_path.startswith('scrapers/') else scraper_path
+        candidates = [Path('/scrapers') / rel, self.base_path / scraper_path]
+        for c in candidates:
+            if c.exists():
+                return c
+        return self.base_path / scraper_path
+
+    def _sync_artifacts(self, work_src: Path, run_dir: Path) -> None:
+        """Copy generated artifacts from work_src into the run_dir."""
+        run_dir.mkdir(parents=True, exist_ok=True)
+        # Copy common output locations if they exist
+        for name in ["data", "output", "reports", "artifacts"]:
+            src = work_src / name
+            if src.exists():
+                dst = run_dir / name
+                try:
+                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                except Exception as e:
+                    self.logger.warning("Skipping copy of %s: %s", src, e)
+        # Copy top-level logs and json reports
+        for ext in (".log", ".json"):
+            for f in work_src.glob(f"*{ext}"):
+                try:
+                    shutil.copy2(f, run_dir / f.name)
+                except Exception as e:
+                    self.logger.warning("Skipping copy of file %s: %s", f, e)
+
     def run_scraper(self, scraper_path: str) -> bool:
         """Run a single scraper."""
         try:
@@ -174,24 +204,27 @@ class BackgroundScraperExecution:
             
             self.logger.info(f"🔄 Starting scraper: {execution.name}")
             
-            # Get the full path to the scraper
-            scraper_full_path = self.base_path / scraper_path
+            # Resolve source path and stage to writable work directory
+            source_path = self._resolve_source_path(scraper_path)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            work_dir = SCRAPERS_DATA_DIR / "work" / execution.name.replace(' ', '_').lower() / timestamp
+            work_src = work_dir / "src"
+            work_src.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                shutil.copytree(source_path, work_src, dirs_exist_ok=True)
+            except Exception as e:
+                self.logger.error("Failed to stage sources from %s: %s", source_path, e)
+                raise
             
-            # Create a unique run directory under SCRAPERS_DATA_DIR
-            run_dir = SCRAPERS_DATA_DIR / execution.name.replace(' ', '_').lower() / datetime.now().strftime('%Y%m%d_%H%M%S')
-            run_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Run the scraper using the testing framework
+            # Run the scraper using the testing framework in the work directory
             cmd = [
-                sys.executable, 
+                sys.executable,
                 "scraper_testing_framework.py",
-                "--scraper-path", str(scraper_full_path),
+                "--scraper-path", str(work_src),
                 "--max-records", "10",
-                "--timeout", "300",
-                "--output-dir", str(run_dir)
+                "--timeout", "300"
             ]
             
-            # Start the process
             process = subprocess.Popen(
                 cmd,
                 cwd=str(Path(__file__).parent),
@@ -206,6 +239,10 @@ class BackgroundScraperExecution:
             # Wait for completion with timeout
             try:
                 stdout, stderr = process.communicate(timeout=300)
+                
+                # Persist artifacts to per-run directory
+                run_dir = SCRAPERS_DATA_DIR / execution.name.replace(' ', '_').lower() / timestamp
+                self._sync_artifacts(work_src, run_dir)
                 
                 if process.returncode == 0:
                     execution.status = ScraperStatus.COMPLETED
