@@ -42,8 +42,8 @@ open http://localhost:5555 || xdg-open http://localhost:5555 || true
 
 ## Scraper-runner
 - Sources are mounted read-only: `./scrapers:/scrapers:ro`.
-- Writable data volume for outputs: `./scrapers-data:/scrapers/data:rw` (already configured).
-- Scrapers must write under `/scrapers/data/...` (runner passes `--output-dir`).
+- Writable data volume for outputs: `./scrapers-data:/app/scrapers-data:rw` (already configured).
+- Scrapers must write under `/app/scrapers-data/...`; the runner stages sources and syncs artifacts, without using `--output-dir`. 
 - Start runner:
 ```bash
 docker compose up -d scraper-runner
