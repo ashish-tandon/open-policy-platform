@@ -1,6 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+echo "Health:"
+curl -fsS http://localhost:8000/api/v1/health >/dev/null && echo OK
+
+echo "Detailed health:"
+curl -fsS http://localhost:8000/api/v1/health/detailed >/dev/null && echo OK
+
+echo "Database health:"
+curl -fsS http://localhost:8000/api/v1/health/database >/dev/null && echo OK
+
+echo "Metrics (head):"
+curl -fsS http://localhost:8000/metrics | head -n 5
+
+echo "Entities sample:"
+curl -fsS 'http://localhost:8000/api/v1/entities/representatives?limit=1' >/dev/null && echo OK
+
+echo "Smoke test passed"
+#!/usr/bin/env bash
+set -euo pipefail
+
 API_URL="${API_URL:-http://localhost:8000}"
 WEB_URL="${WEB_URL:-http://localhost:5173}"
 DB_HOST="${DB_HOST:-localhost}"

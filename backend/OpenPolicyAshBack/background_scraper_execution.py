@@ -173,17 +173,19 @@ class BackgroundScraperExecution:
             # Get the full path to the scraper
             scraper_full_path = self.base_path / scraper_path
             
-            # Create data directory
-            data_dir = scraper_full_path / "data"
-            data_dir.mkdir(exist_ok=True)
+            # Resolve writable data directory
+            data_root = Path(os.getenv("SCRAPERS_DATA_DIR", "/scrapers/data"))
+            run_dir = data_root / datetime.now().strftime("%Y%m%d_%H%M%S") / scraper_full_path.name
+            run_dir.mkdir(parents=True, exist_ok=True)
             
             # Run the scraper using the testing framework
             cmd = [
-                sys.executable, 
+                sys.executable,
                 "scraper_testing_framework.py",
                 "--scraper-path", str(scraper_full_path),
-                "--max-records", "10",  # Collect 10 records for background execution
-                "--timeout", "300"  # 5 minute timeout
+                "--max-records", "10",
+                "--timeout", "300",
+                "--output-dir", str(run_dir)
             ]
             
             # Start the process
