@@ -345,7 +345,7 @@ async def record_category_run(category: str):
     """Record a category run in the scrapers DB (best-effort). Returns run_id."""
     try:
         try:
-            from ...config.database import scrapers_engine
+            from backend.config.database import scrapers_engine
         except Exception:
             scrapers_engine = None
         run_id = None

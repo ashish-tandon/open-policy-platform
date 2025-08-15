@@ -7,7 +7,7 @@ router = APIRouter(prefix="/api/v1/entities", tags=["Entities"])
 
 def _engine():
 	try:
-		from ...config.database import engine
+		from backend.config.database import engine
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
 	return engine
