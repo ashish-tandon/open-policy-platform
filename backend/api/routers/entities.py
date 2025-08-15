@@ -163,12 +163,8 @@ async def list_votes(q: Optional[str] = None, limit: int = Query(50, ge=1, le=20
 			rows = conn.execute(sql_text(sql), params).fetchall()
 			items = [dict(r._mapping) for r in rows]
 		return {"items": items, "count": len(items), "limit": limit, "offset": offset}
-<<<<<<< HEAD
 	except Exception:
 		return {"items": [], "count": 0, "limit": limit, "offset": offset}
-=======
-    except Exception:
-        return {"items": [], "count": 0, "limit": limit, "offset": offset}
 
 
 @router.get("/events")
@@ -212,4 +208,3 @@ async def list_events(q: Optional[str] = None, limit: int = Query(50, ge=1, le=2
 		raise
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error listing events: {e}")
->>>>>>> 3df7657d (Auto-commit pending changes before rebase - PR synchronize)
