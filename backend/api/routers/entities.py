@@ -2,15 +2,16 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import text as sql_text
 from typing import Any, Dict, List, Optional, Set
 
+from config.database import engine
+
 router = APIRouter(prefix="/api/v1/entities", tags=["Entities"])
 
 
 def _engine():
 	try:
-		from ...config.database import engine
+		return engine
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
-	return engine
 
 
 def _get_columns(table: str) -> Set[str]:

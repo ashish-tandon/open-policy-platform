@@ -15,6 +15,8 @@ from pydantic import BaseModel
 
 from ..dependencies import get_db
 from ..config import settings
+from sqlalchemy import text as sql_text
+from config.database import engine
 
 router = APIRouter()
 
@@ -120,8 +122,6 @@ async def detailed_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
         # Test database connection
         db_status = "healthy"
         try:
-            from sqlalchemy import text as sql_text
-            from backend.config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
         except Exception as e:
@@ -174,8 +174,6 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
     try:
         # Test basic connectivity
         try:
-            from sqlalchemy import text as sql_text
-            from backend.config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
         except Exception as e:
@@ -199,7 +197,8 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
                 if table_row and table_row[0] is not None:
                     table_count = int(table_row[0])
                 try:
-                    pol_row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;")).fetchone()
+                    pol_row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;"))
+                    pol_row = pol_row.fetchone()
                     if pol_row and pol_row[0] is not None:
                         politician_count = int(pol_row[0])
                 except Exception:
@@ -478,8 +477,6 @@ async def health_metrics(db: Session = Depends(get_db)) -> Dict[str, Any]:
         db_connected = False
         politician_count = 0
         try:
-            from sqlalchemy import text as sql_text
-            from backend.config.database import engine
             with engine.connect() as conn:
                 conn.execute(sql_text("SELECT 1"))
                 db_connected = True
