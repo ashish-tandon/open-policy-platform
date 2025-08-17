@@ -11,32 +11,32 @@ from sqlalchemy.pool import StaticPool
 
 class DatabaseConfig(BaseSettings):
 	"""Database configuration settings"""
-	
+
 	# Canonical URLs (preferred)
 	app_database_url: Optional[str] = os.getenv("APP_DATABASE_URL")
 	database_url: Optional[str] = os.getenv("DATABASE_URL")
 	scrapers_database_url: Optional[str] = os.getenv("SCRAPERS_DATABASE_URL")
-	
+
 	# Fallback granular settings
 	host: str = os.getenv("DB_HOST", "localhost")
 	port: int = int(os.getenv("DB_PORT", "5432"))
 	database: str = os.getenv("DB_NAME", "openpolicy")
 	username: str = os.getenv("DB_USERNAME", os.getenv("DB_USER", "postgres"))
 	password: str = os.getenv("DB_PASSWORD", "")
-	
+
 	# Connection pool settings
 	pool_size: int = 10
 	max_overflow: int = 20
 	pool_timeout: int = 30
 	pool_recycle: int = 3600
-	
+
 	# SSL settings
 	ssl_mode: Optional[str] = None
-	
+
 	class Config:
 		env_file = ".env"
 		env_prefix = "DB_"
-	
+
 	def get_url(self) -> str:
 		"""Get effective database URL (prefers APP_DATABASE_URL or DATABASE_URL)"""
 		if self.app_database_url:
@@ -46,11 +46,11 @@ class DatabaseConfig(BaseSettings):
 		if self.password:
 			return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.database}"
 		return f"postgresql://{self.username}@{self.host}:{self.port}/{self.database}"
-	
+
 	def get_scrapers_url(self) -> str:
 		"""Get scrapers database URL (falls back to main URL)"""
 		return self.scrapers_database_url or self.get_url()
-	
+
 	def get_async_url(self) -> str:
 		"""Get async database URL"""
 		base_url = self.get_url()
@@ -59,10 +59,20 @@ class DatabaseConfig(BaseSettings):
 # Global database configuration
 db_config = DatabaseConfig()
 
+
 def create_database_engine() -> Engine:
 	"""Create database engine"""
+	url = db_config.get_url()
+	if url.startswith("sqlite"):
+		# SQLite engine (use StaticPool when in-memory)
+		connect_args = {}
+		if url.endswith(":memory:"):
+			connect_args = {"check_same_thread": False}
+			return create_engine(url, connect_args=connect_args, poolclass=StaticPool, echo=False)
+		return create_engine(url, connect_args=connect_args, echo=False)
+	# Default: PostgreSQL or others with pooling
 	engine = create_engine(
-		db_config.get_url(),
+		url,
 		pool_size=db_config.pool_size,
 		max_overflow=db_config.max_overflow,
 		pool_timeout=db_config.pool_timeout,
@@ -89,6 +99,7 @@ def get_session_factory():
 	"""Get session factory"""
 	engine = create_database_engine()
 	return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
 
 
 def get_database_session() -> Session:

@@ -121,7 +121,11 @@ def create_app() -> FastAPI:
     
     # Include routers
     app.include_router(health.router, prefix="/api/v1", tags=["Health"])
+    # Back-compat unversioned prefix for health
+    app.include_router(health.router, prefix="/api", tags=["Health"])
     app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
+    # Back-compat unversioned prefix
+    app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
     app.include_router(policies.router, prefix="/api/v1/policies", tags=["Policies"])
     app.include_router(scrapers.router, prefix="/api/v1/scrapers", tags=["Scrapers"])
     app.include_router(scraper_monitoring.router, tags=["Scraper Monitoring"])
