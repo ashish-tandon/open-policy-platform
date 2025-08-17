@@ -12,6 +12,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from config.database import db_config
 
 # Configure logging
 logging.basicConfig(
@@ -69,7 +70,7 @@ class ProductionDeployment:
         # Check database connection
         try:
             result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
                 "-c", "SELECT 1;"
             ], capture_output=True, text=True, timeout=10)
             
@@ -94,7 +95,7 @@ class ProductionDeployment:
                 for migration_file in sorted(migrations_dir.glob("*.sql")):
                     self.log_step(f"Running migration: {migration_file.name}")
                     result = subprocess.run([
-                        "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                        "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
                         "-f", str(migration_file)
                     ], capture_output=True, text=True, timeout=30)
                     
@@ -112,7 +113,7 @@ class ProductionDeployment:
             
             for query in optimization_queries:
                 result = subprocess.run([
-                    "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                    "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
                     "-c", query
                 ], capture_output=True, text=True, timeout=60)
                 

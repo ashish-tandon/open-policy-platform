@@ -174,13 +174,6 @@ async def latest_run(category: Optional[str] = None):
 async def get_run(run_id: int):
 	"""Get a specific run by id"""
 	try:
-<<<<<<< HEAD
-		try:
-			from config.database import scrapers_engine
-		except Exception:
-			scrapers_engine = None
-=======
->>>>>>> origin/cursor/fix-imports-rebuild-merge-and-deploy-dc42
 		if scrapers_engine is None:
 			return None
 		with scrapers_engine.connect() as conn:  # type: ignore
@@ -438,6 +431,7 @@ async def get_failure_analysis():
 
 @router.get("/database/status")
 async def get_database_status():
+<<<<<<< HEAD
 	"""Get database status and record counts"""
 	try:
 		tables = []
@@ -478,6 +472,7 @@ async def get_database_status():
 		}
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error getting database status: {str(e)}")
+
 
 async def run_scraper_background(request: 'ScraperRunRequest'):
 	"""Background task to run scrapers"""

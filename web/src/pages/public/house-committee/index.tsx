@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import DebateCard from '../../components/DebateCard';
-import Select from '../../components/common/Select';
-import api from '../../api/axios';
-import DebateCardSkeleton from '../../components/DebateCardSkeleton';
+import DebateCard from '../../../components/DebateCard';
+import Select from '../../../components/common/Select';
+import api from '../../../api/axios';
+import DebateCardSkeleton from '../../../components/DebateCardSkeleton';
 
 const HouseCommitte = () => {
   const [days, setDays] = useState([]);

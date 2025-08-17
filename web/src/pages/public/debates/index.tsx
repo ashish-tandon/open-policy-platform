@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import DebateCard from '../../components/DebateCard';
-import Select from '../../components/common/Select';
-import api from '../../api/axios';
-import DebateCardSkeleton from '../../components/DebateCardSkeleton';
-import EmptyState from '../../components/common/EmptyState';
+import DebateCard from '../../../components/DebateCard';
+import Select from '../../../components/common/Select';
+import api from '../../../api/axios';
+import DebateCardSkeleton from '../../../components/DebateCardSkeleton';
+import EmptyState from '../../../components/common/EmptyState';
 import { FiInbox } from 'react-icons/fi';
 
 // const days = [
@@ -100,7 +100,7 @@ function Debates() {
               options={days}
               placeholder="Pick a Date"
               width="w-full md:w-[150px]"
-              onChange={(value) => {
+              onChange={(value: string) => {
                 setSelectedDay(value);
                 loadMentionData();
               }}
@@ -109,7 +109,7 @@ function Debates() {
               options={years}
               placeholder="Select Year"
               width="w-full md:w-[120px]"
-              onChange={(value) => {
+              onChange={(value: string) => {
                 setSelectedYear(value);
                 loadDays(value);
               }}

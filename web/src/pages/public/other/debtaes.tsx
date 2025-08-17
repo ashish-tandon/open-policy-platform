@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import DebateCard from '../../components/DebateCard';
-import api from '../../api/axios';
-import DebateCardSkeleton from '../../components/DebateCardSkeleton';
+import DebateCard from '../../../components/DebateCard';
+import api from '../../../api/axios';
+import DebateCardSkeleton from '../../../components/DebateCardSkeleton';
 
 function DebateSearch() {
   const location = useLocation();

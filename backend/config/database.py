@@ -10,6 +10,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 
 class DatabaseConfig(BaseSettings):
+<<<<<<< HEAD
 	"""Database configuration settings"""
 
 	# Canonical URLs (preferred)
@@ -55,6 +56,7 @@ class DatabaseConfig(BaseSettings):
 		"""Get async database URL"""
 		base_url = self.get_url()
 		return base_url.replace("postgresql://", "postgresql+asyncpg://")
+
 
 # Global database configuration
 db_config = DatabaseConfig()

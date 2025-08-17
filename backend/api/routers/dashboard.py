@@ -10,6 +10,9 @@ import json
 import os
 from datetime import datetime, timedelta
 from pydantic import BaseModel
+from ..config import settings
+from ..dependencies import get_db
+from ...config.database import db_config
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
 
@@ -63,8 +66,9 @@ async def get_dashboard_overview():
         
         # Database status
         import subprocess
+        db_user = db_config.username
         db_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_user, "-d", db_config.database,
             "-c", "SELECT 1;",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -84,7 +88,7 @@ async def get_dashboard_overview():
         total_records = 0
         if database_status == "healthy":
             count_result = subprocess.run([
-                "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+                "psql", "-h", db_config.host, "-U", db_user, "-d", db_config.database,
                 "-c", "SELECT COUNT(*) FROM core_politician;",
                 "-t", "-A"
             ], capture_output=True, text=True, timeout=10)
@@ -206,8 +210,8 @@ async def get_database_metrics():
         
         # Database size
         size_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
-            "-c", "SELECT pg_size_pretty(pg_database_size('openpolicy'));",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
+            "-c", f"SELECT pg_size_pretty(pg_database_size('{db_config.database}'));",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
         
@@ -217,7 +221,7 @@ async def get_database_metrics():
         
         # Table count
         table_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -228,7 +232,7 @@ async def get_database_metrics():
         
         # Total records
         records_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", "SELECT COUNT(*) FROM core_politician;",
             "-t", "-A"
         ], capture_output=True, text=True, timeout=10)
@@ -239,7 +243,7 @@ async def get_database_metrics():
         
         # Largest table
         largest_result = subprocess.run([
-            "psql", "-h", "localhost", "-U", "ashishtandon", "-d", "openpolicy",
+            "psql", "-h", db_config.host, "-U", db_config.username, "-d", db_config.database,
             "-c", """
             SELECT tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
             FROM pg_stat_user_tables 

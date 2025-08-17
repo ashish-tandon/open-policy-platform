@@ -78,8 +78,7 @@ async def get_schema():
 @router.get("/tables", response_model=List[TableInfo])
 async def get_table_info():
     """Get information about all tables in the database"""
-    try:
-        try:
+            try:
             from config.database import engine
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"DB engine unavailable: {e}")
