@@ -33,6 +33,7 @@ services:
       - SCRAPER_REPORTS_DIR=/app/OpenPolicyAshBack
       - SCRAPER_LOGS_DIR=/app/OpenPolicyAshBack/logs
       - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=dev-secret-change-in-prod
     ports:
       - "8000:8000"
     depends_on:

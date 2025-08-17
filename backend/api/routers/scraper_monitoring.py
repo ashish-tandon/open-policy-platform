@@ -13,7 +13,13 @@ from pydantic import BaseModel
 import logging
 from sqlalchemy import text as sql_text
 
-router = APIRouter(prefix="/api/v1/scrapers", tags=["scraper-monitoring"])
+try:
+	from config.database import engine, scrapers_engine
+except Exception:
+	engine = None  # type: ignore
+	scrapers_engine = None  # type: ignore
+
+router = APIRouter(prefix="/api/v1/scrapers", tags=["scraper-monitoring"]) 
 logger = logging.getLogger("openpolicy.api.scrapers")
 
 # Data models
@@ -60,13 +66,9 @@ class ScraperRun(BaseModel):
 async def get_latest_summary():
 	"""Return the latest scraper summary from scrapers DB if table exists."""
 	try:
-		try:
-			from config.database import scrapers_engine
-		except Exception:
-			scrapers_engine = None
 		if scrapers_engine is None:
 			return None
-		with scrapers_engine.connect() as conn:
+		with scrapers_engine.connect() as conn:  # type: ignore
 			row = conn.execute(sql_text(
 				"""
 				SELECT timestamp, total_scrapers, successful, failed, success_rate, total_records
@@ -99,10 +101,6 @@ class ScraperRunRequest(BaseModel):
 async def list_runs(category: Optional[str] = None, status: Optional[str] = None, limit: int = 20):
 	"""List recent scraper runs from scrapers DB"""
 	try:
-		try:
-			from config.database import scrapers_engine
-		except Exception:
-			scrapers_engine = None
 		if scrapers_engine is None:
 			return []
 		query = """
@@ -121,7 +119,7 @@ async def list_runs(category: Optional[str] = None, status: Optional[str] = None
 			clauses.append("status = :status")
 			params["status"] = status
 		where_clause = ("WHERE " + " AND ".join(clauses)) if clauses else ""
-		with scrapers_engine.connect() as conn:
+		with scrapers_engine.connect() as conn:  # type: ignore
 			rows = conn.execute(sql_text(query.format(where=where_clause)), params).fetchall()
 			return [
 				ScraperRun(
@@ -142,10 +140,6 @@ async def list_runs(category: Optional[str] = None, status: Optional[str] = None
 async def latest_run(category: Optional[str] = None):
 	"""Fetch latest run, optionally filtered by category"""
 	try:
-		try:
-			from config.database import scrapers_engine
-		except Exception:
-			scrapers_engine = None
 		if scrapers_engine is None:
 			return None
 		query = """
@@ -160,7 +154,7 @@ async def latest_run(category: Optional[str] = None):
 		if category:
 			where_clause = "WHERE category = :category"
 			params["category"] = category
-		with scrapers_engine.connect() as conn:
+		with scrapers_engine.connect() as conn:  # type: ignore
 			row = conn.execute(sql_text(query.format(where=where_clause)), params).fetchone()
 			if not row:
 				return None
@@ -180,13 +174,16 @@ async def latest_run(category: Optional[str] = None):
 async def get_run(run_id: int):
 	"""Get a specific run by id"""
 	try:
+<<<<<<< HEAD
 		try:
 			from config.database import scrapers_engine
 		except Exception:
 			scrapers_engine = None
+=======
+>>>>>>> origin/cursor/fix-imports-rebuild-merge-and-deploy-dc42
 		if scrapers_engine is None:
 			return None
-		with scrapers_engine.connect() as conn:
+		with scrapers_engine.connect() as conn:  # type: ignore
 			row = conn.execute(sql_text(
 				"""
 				SELECT id, category, start_time, end_time, status, COALESCE(records_collected, 0)
@@ -212,13 +209,9 @@ async def get_run(run_id: int):
 async def list_run_attempts(run_id: int):
 	"""List attempts for a run id (if attempts table exists)"""
 	try:
-		try:
-			from config.database import scrapers_engine
-		except Exception:
-			scrapers_engine = None
 		if scrapers_engine is None:
 			return {"attempts": []}
-		with scrapers_engine.connect() as conn:
+		with scrapers_engine.connect() as conn:  # type: ignore
 			rows = conn.execute(sql_text(
 				"""
 				SELECT id, scraper_name, attempt_number, started_at, finished_at, status, error_message
@@ -298,21 +291,16 @@ async def get_system_health():
 async def get_data_collection_stats(request: Request):
 	"""Get data collection statistics"""
 	try:
-		try:
-			from config.database import engine
-		except Exception:
-			from ..config import settings  # fallback
-			engine = None
 		total_records = 0
 		if engine is not None:
 			try:
-				with engine.connect() as conn:
+				with engine.connect() as conn:  # type: ignore
 					row = conn.execute(sql_text("SELECT COUNT(*) FROM core_politician;"))
 					row = row.fetchone()
 					if row and row[0] is not None:
 						total_records = int(row[0])
-			except Exception as e:
-				logger.warning("DB count query failed: %s", e)
+				except Exception as e:
+					logger.warning("DB count query failed: %s", e)
 
 		reports_dir = getattr(request.app.state, "scraper_reports_dir", os.getcwd())
 		today = datetime.now().strftime("%Y%m%d")
@@ -353,12 +341,14 @@ async def run_scrapers(request: Request, background_tasks: BackgroundTasks):
 	"""Run scrapers manually"""
 	try:
 		# Add scraper run to background tasks
-		background_tasks.add_task(run_scraper_background, request)
+		from .scraper_monitoring import ScraperRunRequest  # local import to avoid circular
+		payload = ScraperRunRequest()
+		background_tasks.add_task(run_scraper_background, payload)
 		
 		return {
 			"message": "Scraper run initiated",
-			"category": request.category or "all",
-			"max_records": request.max_records,
+			"category": payload.category or "all",
+			"max_records": payload.max_records,
 			"timestamp": datetime.now().isoformat()
 		}
 	except Exception as e:
@@ -450,15 +440,11 @@ async def get_failure_analysis():
 async def get_database_status():
 	"""Get database status and record counts"""
 	try:
-		try:
-			from config.database import engine
-		except Exception:
-			engine = None
 		tables = []
 		db_size = "Unknown"
 		if engine is not None:
 			try:
-				with engine.connect() as conn:
+				with engine.connect() as conn:  # type: ignore
 					rows = conn.execute(sql_text("""
 						SELECT 
 							table_schema as schemaname, 
@@ -482,8 +468,8 @@ async def get_database_status():
 					size_row = conn.execute(sql_text("SELECT pg_size_pretty(pg_database_size(current_database()));")).fetchone()
 					if size_row and size_row[0]:
 						db_size = size_row[0]
-			except Exception as e:
-				logger.warning("DB table/size query failed: %s", e)
+				except Exception as e:
+					logger.warning("DB table/size query failed: %s", e)
 		
 		return {
 			"database_size": db_size,
@@ -493,7 +479,7 @@ async def get_database_status():
 	except Exception as e:
 		raise HTTPException(status_code=500, detail=f"Error getting database status: {str(e)}")
 
-async def run_scraper_background(request: ScraperRunRequest):
+async def run_scraper_background(request: 'ScraperRunRequest'):
 	"""Background task to run scrapers"""
 	try:
 		import subprocess

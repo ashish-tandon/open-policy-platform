@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DB_USER=${DB_USER:-openpolicy}
-DB_NAME=${DB_NAME:-openpolicy_app}
+# Seed Open Policy Platform databases inside the postgres service
+# Requires: docker compose stack running with 'postgres' service healthy
 
-if docker compose ps postgres >/dev/null 2>&1; then
-  docker compose exec -T postgres sh -lc "psql -U $DB_USER -d $DB_NAME -f /seed_db.sql"
-else
-  echo "postgres container not running" >&2
-  exit 1
-fi
+APP_DB="${APP_DB:-openpolicy_app}"
+SCRAPERS_DB="${SCRAPERS_DB:-openpolicy_scrapers}"
+USER_NAME="${POSTGRES_USER:-openpolicy}"
+SERVICE="${POSTGRES_SERVICE:-postgres}"
 
+# Copy seed files into container
+docker compose cp scripts/seed_app.sql "$SERVICE":/seed_app.sql
+docker compose cp scripts/seed_scrapers.sql "$SERVICE":/seed_scrapers.sql
+
+# Apply seeds
+docker compose exec -T "$SERVICE" bash -lc "psql -U $USER_NAME -d $APP_DB -f /seed_app.sql"
+docker compose exec -T "$SERVICE" bash -lc "psql -U $USER_NAME -d $SCRAPERS_DB -f /seed_scrapers.sql"
+
+echo "Seed completed: $APP_DB and $SCRAPERS_DB"

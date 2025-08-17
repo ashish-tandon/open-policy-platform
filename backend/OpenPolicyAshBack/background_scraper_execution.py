@@ -30,6 +30,9 @@ import shutil
 scrapers_root = Path(__file__).resolve().parents[2] / "scrapers" / "scrapers-ca"
 sys.path.insert(0, str(scrapers_root))
 
+# Resolve writable data directory for outputs
+SCRAPERS_DATA_DIR = Path(os.getenv("SCRAPERS_DATA_DIR", "/app/scrapers-data")).resolve()
+
 class ScraperStatus(Enum):
     RUNNING = "running"
     STOPPED = "stopped"
@@ -64,6 +67,7 @@ class BackgroundScraperExecution:
         self.base_path = Path(__file__).parent.parent.parent
         self.logs_dir = Path(__file__).parent / "logs"
         self.logs_dir.mkdir(exist_ok=True)
+        SCRAPERS_DATA_DIR.mkdir(parents=True, exist_ok=True)
         
         # Setup logging
         self.setup_logging()
@@ -160,6 +164,35 @@ class BackgroundScraperExecution:
         
         self.logger.info(f"✅ Initialized {len(self.executions)} scraper executions")
 
+    def _resolve_source_path(self, scraper_path: str) -> Path:
+        """Prefer /scrapers mount as the source; fallback to repo copy under /app."""
+        rel = scraper_path.split('/', 1)[1] if scraper_path.startswith('scrapers/') else scraper_path
+        candidates = [Path('/scrapers') / rel, self.base_path / scraper_path]
+        for c in candidates:
+            if c.exists():
+                return c
+        return self.base_path / scraper_path
+
+    def _sync_artifacts(self, work_src: Path, run_dir: Path) -> None:
+        """Copy generated artifacts from work_src into the run_dir."""
+        run_dir.mkdir(parents=True, exist_ok=True)
+        # Copy common output locations if they exist
+        for name in ["data", "output", "reports", "artifacts"]:
+            src = work_src / name
+            if src.exists():
+                dst = run_dir / name
+                try:
+                    shutil.copytree(src, dst, dirs_exist_ok=True)
+                except Exception as e:
+                    self.logger.warning("Skipping copy of %s: %s", src, e)
+        # Copy top-level logs and json reports
+        for ext in (".log", ".json"):
+            for f in work_src.glob(f"*{ext}"):
+                try:
+                    shutil.copy2(f, run_dir / f.name)
+                except Exception as e:
+                    self.logger.warning("Skipping copy of file %s: %s", f, e)
+
     def run_scraper(self, scraper_path: str) -> bool:
         """Run a single scraper."""
         try:
@@ -171,32 +204,20 @@ class BackgroundScraperExecution:
             
             self.logger.info(f"🔄 Starting scraper: {execution.name}")
             
-            # Get the full path to the scraper
-            scraper_full_path = self.base_path / scraper_path
-            
-            # Resolve writable data directory
-            data_root = Path(os.getenv("SCRAPERS_DATA_DIR", "/app/scrapers-data"))
-            run_dir = data_root / datetime.now().strftime("%Y%m%d_%H%M%S") / scraper_full_path.name
-            run_dir.mkdir(parents=True, exist_ok=True)
-
-            # Copy source to writable work directory so framework can write ./data
+            # Resolve source path and stage to writable work directory
+            source_path = self._resolve_source_path(scraper_path)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            work_dir = SCRAPERS_DATA_DIR / "work" / execution.name.replace(' ', '_').lower() / timestamp
+            work_src = work_dir / "src"
+            work_src.parent.mkdir(parents=True, exist_ok=True)
             try:
-                # Map repo path scrapers/... to container /scrapers/... source
-                source_root = Path("/scrapers")
-                rel = Path(scraper_path)
-                if rel.parts and rel.parts[0] == "scrapers":
-                    rel = rel.relative_to("scrapers")
-                source_path = source_root / rel
-                work_src = run_dir / "src"
                 shutil.copytree(source_path, work_src, dirs_exist_ok=True)
-            except Exception as copy_err:
-                execution.status = ScraperStatus.FAILED
-                execution.error_count += 1
-                execution.last_error = f"copy failed: {copy_err}"
-                self.logger.error(f"❌ Copy failed for {execution.name}: {copy_err}")
-                return False
-
-            # Run the scraper using the testing framework against the writable copy
+            except Exception as e:
+                self.logger.error("Failed to stage sources from %s: %s", source_path, e)
+                raise
+            
+<<<<<<< HEAD
+            # Run the scraper using the testing framework in the work directory
             cmd = [
                 sys.executable,
                 "scraper_testing_framework.py",
@@ -205,7 +226,6 @@ class BackgroundScraperExecution:
                 "--timeout", "300"
             ]
             
-            # Start the process
             process = subprocess.Popen(
                 cmd,
                 cwd=str(Path(__file__).parent),
@@ -219,12 +239,16 @@ class BackgroundScraperExecution:
             
             # Wait for completion with timeout
             try:
-                stdout, stderr = process.communicate(timeout=300)  # 5 minute timeout
+                stdout, stderr = process.communicate(timeout=300)
+                
+                # Persist artifacts to per-run directory
+                run_dir = SCRAPERS_DATA_DIR / execution.name.replace(' ', '_').lower() / timestamp
+                self._sync_artifacts(work_src, run_dir)
                 
                 if process.returncode == 0:
                     execution.status = ScraperStatus.COMPLETED
-                    execution.records_collected = 10  # Assume 10 records collected
-                    self.logger.info(f"✅ Scraper completed: {execution.name}")
+                    execution.records_collected = 10  # Estimated
+                    self.logger.info(f"✅ Scraper completed: {execution.name} (output: {run_dir})")
                     return True
                 else:
                     execution.status = ScraperStatus.FAILED
