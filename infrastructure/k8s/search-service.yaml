@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: search-service
+  template:
+    metadata:
+      labels:
+        app: search-service
+    spec:
+      containers:
+        - name: search-service
+          image: ghcr.io/your-org/search-service:latest
+          ports:
+            - containerPort: 9003
+          env:
+            - name: PORT
+              value: "9003"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9003
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9003
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-service
+spec:
+  selector:
+    app: search-service
+  ports:
+    - name: http
+      port: 9003
+      targetPort: 9003

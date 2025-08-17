@@ -33,4 +33,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: openapi-schema
-          path: dist/openapi.json
+          path: |
+            dist/openapi.json
+            dist/openapi.yaml

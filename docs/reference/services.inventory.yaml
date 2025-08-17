@@ -1,0 +1,144 @@
+services:
+  - name: api-gateway
+    path: services/api-gateway
+    kind: http
+    routes_base: /api
+    port: 9000
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: web
+    path: services/web
+    kind: web
+    port: 9011
+    contracts: [healthz]
+
+  - name: mobile-api
+    path: services/mobile-api
+    kind: http
+    port: 9009
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: auth-service
+    path: services/auth-service
+    kind: http
+    db: openpolicy_auth
+    port: 9001
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: policy-service
+    path: services/policy-service
+    kind: http
+    db: openpolicy_app
+    domains: [policies, committees, debates, votes]
+    port: 9002
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: search-service
+    path: services/search-service
+    kind: http
+    port: 9003
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: notification-service
+    path: services/notification-service
+    kind: http
+    port: 9004
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: config-service
+    path: services/config-service
+    kind: http
+    port: 9005
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: monitoring-service
+    path: services/monitoring-service
+    kind: http
+    port: 9006
+    contracts: [healthz, readyz, metrics]
+
+  - name: etl
+    path: services/etl
+    kind: worker+http
+    db: [openpolicy_scrapers, openpolicy_app]
+    port: 9007
+    contracts: [healthz, readyz, metrics, alembic]
+
+  - name: scraper-service
+    path: services/scraper-service
+    kind: worker+http
+    db: openpolicy_scrapers
+    port: 9008
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: legacy-django
+    path: services/legacy-django
+    kind: http
+    port: 9010
+    contracts: [healthz, readyz, metrics]
+
+  - name: plotly-service
+    path: services/plotly-service
+    kind: http
+    port: 9012
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: mcp-service
+    path: services/mcp-service
+    kind: http
+    port: 9013
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: op-import-service
+    path: services/op-import-service
+    kind: http
+    port: 9014
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: representatives-service
+    path: services/representatives-service
+    kind: http
+    port: 9015
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: committees-service
+    path: services/committees-service
+    kind: http
+    port: 9016
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: debates-service
+    path: services/debates-service
+    kind: http
+    port: 9017
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: votes-service
+    path: services/votes-service
+    kind: http
+    port: 9018
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: files-service
+    path: services/files-service
+    kind: http
+    port: 9019
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: analytics-service
+    path: services/analytics-service
+    kind: http
+    port: 9020
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: dashboard-service
+    path: services/dashboard-service
+    kind: http
+    port: 9021
+    contracts: [healthz, readyz, metrics, openapi]
+
+  - name: data-management-service
+    path: services/data-management-service
+    kind: http
+    port: 9022
+    contracts: [healthz, readyz, metrics, openapi]

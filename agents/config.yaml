@@ -1,0 +1,23 @@
+orchestrator:
+  name: master-orchestrator
+  script: agents/orchestrator.py
+  roles:
+    - coordination
+    - scheduling
+    - reporting
+
+agents:
+  - name: qa-agent
+    script: agents/agent_qa.py
+    roles: [qa, validation]
+  - name: audit-agent
+    script: agents/agent_audit.py
+    roles: [audit, aggregation]
+  - name: service-agent
+    script: agents/agent_service.py
+    roles: [build, test, scaffold]
+
+parallelism:
+  max_workers: 6
+
+# Orchestration targets read from docs/reference/services.inventory.yaml

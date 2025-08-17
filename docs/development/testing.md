@@ -1,6 +1,13 @@
 # Testing
 
-- Backend: pytest (tests under `backend/tests`)
-- Health checks: curl `/api/v1/health` and `/api/v1/health/detailed`
-- Scrapers monitoring: validate presence of latest `scraper_test_report_*.json`
-- CI: docs link check and OpenAPI export
+- Unit/Integration: see `backend/tests`
+- Smoke: `scripts/smoke-test.sh`
+- OpenAPI: `scripts/export-openapi.sh`
+- CI: `.github/workflows/tests.yml` and `docs-openapi.yml`
+
+Run locally:
+```bash
+# Backend tests (example selection)
+cd backend
+pytest -q
+```

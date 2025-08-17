@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monitoring-service
+  template:
+    metadata:
+      labels:
+        app: monitoring-service
+    spec:
+      containers:
+        - name: monitoring-service
+          image: ghcr.io/your-org/monitoring-service:latest
+          ports:
+            - containerPort: 9006
+          env:
+            - name: PORT
+              value: "9006"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9006
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9006
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: monitoring-service
+spec:
+  selector:
+    app: monitoring-service
+  ports:
+    - name: http
+      port: 9006
+      targetPort: 9006

@@ -184,13 +184,11 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
                 "timestamp": datetime.now().isoformat()
             }
         
-<<<<<<< HEAD
         # Get database size and counts using SQL
         db_size = "Unknown"
         table_count = 0
         politician_count = 0
         try:
-<<<<<<< HEAD
             with engine.connect() as conn:
                 size_row = conn.execute(sql_text("SELECT pg_size_pretty(pg_database_size(current_database()));")).fetchone()
                 if size_row and size_row[0]:
@@ -212,7 +210,6 @@ async def database_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]
                 "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
-
         
         return {
             "status": "healthy",

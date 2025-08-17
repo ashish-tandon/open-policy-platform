@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: representatives-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: representatives-service
+  template:
+    metadata:
+      labels:
+        app: representatives-service
+    spec:
+      containers:
+        - name: representatives-service
+          image: ghcr.io/your-org/representatives-service:latest
+          ports:
+            - containerPort: 9015
+          env:
+            - name: PORT
+              value: "9015"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9015
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9015
+            initialDelaySeconds: 5
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: representatives-service
+spec:
+  selector:
+    app: representatives-service
+  ports:
+    - name: http
+      port: 9015
+      targetPort: 9015

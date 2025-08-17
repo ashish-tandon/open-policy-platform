@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: votes-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: votes-service
+  template:
+    metadata:
+      labels:
+        app: votes-service
+    spec:
+      containers:
+        - name: votes-service
+          image: ghcr.io/your-org/votes-service:latest
+          ports:
+            - containerPort: 9018
+          env:
+            - name: PORT
+              value: "9018"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9018
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9018
+            initialDelaySeconds: 5
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: votes-service
+spec:
+  selector:
+    app: votes-service
+  ports:
+    - name: http
+      port: 9018
+      targetPort: 9018

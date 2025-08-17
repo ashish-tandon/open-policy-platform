@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openpolicy-api
+  labels:
+    app: openpolicy-api
 spec:
   replicas: 2
   selector:
@@ -15,6 +17,7 @@ spec:
       containers:
         - name: api
           image: ghcr.io/your-org/openpolicy-api:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:
@@ -28,9 +31,13 @@ spec:
                 secretKeyRef:
                   name: openpolicy-secrets
                   key: SECRET_KEY
+            - name: ALLOWED_ORIGINS
+              value: "https://yourdomain.com"
+            - name: ALLOWED_HOSTS
+              value: "yourdomain.com"
           readinessProbe:
             httpGet:
-              path: /api/v1/health
+              path: /api/v1/health/detailed
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
@@ -38,5 +45,12 @@ spec:
             httpGet:
               path: /api/v1/health
               port: 8000
-            initialDelaySeconds: 15
+            initialDelaySeconds: 10
             periodSeconds: 20
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

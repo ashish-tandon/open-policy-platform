@@ -47,5 +47,5 @@
 
 ## Build Parameters
 - OpenAPI export: `bash scripts/export-openapi.sh`
-- Docker build: `docker compose up -d --build`
+- Docker build: `docker compose -f backend/docker-compose.yml up -d --build`
 - Local dev: `./scripts/start-all.sh`

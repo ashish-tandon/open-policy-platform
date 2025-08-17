@@ -11,6 +11,9 @@ Source of truth: `env.example` and `backend/api/config.py`
   - `ALLOWED_ORIGINS` (Settings.allowed_origins) — comma-separated; lock down in prod
   - `ALLOWED_HOSTS` (Settings.allowed_hosts) — comma-separated; lock down in prod
 - OPTIONAL
+  - `APP_DATABASE_URL` — preferred DB for app services if set (falls back to `DATABASE_URL`)
+  - `SCRAPERS_DATABASE_URL` — preferred DB for scrapers if set (falls back to `DATABASE_URL`)
+  - `AUTH_DATABASE_URL` — preferred DB for auth if set (falls back to `DATABASE_URL`)
   - `ALGORITHM` (Settings.algorithm) — default `HS256`
   - `ACCESS_TOKEN_EXPIRE_MINUTES` (Settings.access_token_expire_minutes) — default `30`
   - `REDIS_URL` (Settings.redis_url) — default `redis://localhost:6379`
@@ -35,6 +38,8 @@ Notes:
 ## Database (PostgreSQL)
 - Use `DATABASE_URL` for app connectivity
 - Alternative granular vars for tooling/scripts (optional): `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`
+- Optional logical DB URLs for separation of concerns: `APP_DATABASE_URL`, `SCRAPERS_DATABASE_URL`, `AUTH_DATABASE_URL`
+- Tests: `TEST_DATABASE_URL` (defaults to `postgresql://postgres@localhost:5432/openpolicy_test`)
 
 ## Scrapers (integration)
 - Reports/logs read by API from working directory
@@ -51,4 +56,4 @@ Notes:
 
 Validation
 - On deploy, verify all REQUIRED variables are set for target service
-- Consider adding a startup guard to fail fast if variables are missing (planned)
+- Startup guard enforces required variables; in production, missing or insecure values will fail startup

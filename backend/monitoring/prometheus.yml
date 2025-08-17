@@ -13,4 +13,8 @@ rule_files:
 # Uncomment if you expose nginx ingress metrics
 # - job_name: 'nginx-ingress'
 #   static_configs:
+<<<<<<< HEAD
 #     - targets: ['nginx-ingress-controller:10254']
+=======
+#     - targets: ['nginx-ingress-controller:10254']
+>>>>>>> origin/main

@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legacy-django
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: legacy-django
+  template:
+    metadata:
+      labels:
+        app: legacy-django
+    spec:
+      containers:
+        - name: legacy-django
+          image: ghcr.io/your-org/legacy-django:latest
+          ports:
+            - containerPort: 9010
+          env:
+            - name: PORT
+              value: "9010"
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9010
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9010
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: legacy-django
+spec:
+  selector:
+    app: legacy-django
+  ports:
+    - name: http
+      port: 9010
+      targetPort: 9010
