@@ -1,0 +1,455 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openpolicy-scrapers
+  labels:
+    app: openpolicy
+    component: scrapers
+    version: 40by6
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scraper-config
+  namespace: openpolicy-scrapers
+data:
+  MAX_CONCURRENT_SCRAPERS: "20"
+  SCRAPER_TIMEOUT: "300"
+  RETRY_COUNT: "3"
+  RATE_LIMIT_REQUESTS: "10"
+  RATE_LIMIT_PERIOD: "60"
+  LOG_LEVEL: "INFO"
+  SCHEDULE_TIMEZONE: "UTC"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: scraper-secrets
+  namespace: openpolicy-scrapers
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://user:pass@postgres:5432/openpolicy"
+  REDIS_URL: "redis://redis:6379"
+  SECRET_KEY: "your-secret-key"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper-orchestrator
+  namespace: openpolicy-scrapers
+  labels:
+    app: scraper-orchestrator
+    component: orchestrator
+spec:
+  replicas: 1  # Only one orchestrator
+  selector:
+    matchLabels:
+      app: scraper-orchestrator
+  template:
+    metadata:
+      labels:
+        app: scraper-orchestrator
+    spec:
+      containers:
+      - name: orchestrator
+        image: openpolicy/scraper-orchestrator:latest
+        imagePullPolicy: Always
+        env:
+        - name: COMPONENT
+          value: "orchestrator"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: REDIS_URL
+        envFrom:
+        - configMapRef:
+            name: scraper-config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper-workers
+  namespace: openpolicy-scrapers
+  labels:
+    app: scraper-workers
+    component: workers
+spec:
+  replicas: 10  # Scale based on load
+  selector:
+    matchLabels:
+      app: scraper-workers
+  template:
+    metadata:
+      labels:
+        app: scraper-workers
+    spec:
+      containers:
+      - name: worker
+        image: openpolicy/scraper-worker:latest
+        imagePullPolicy: Always
+        env:
+        - name: COMPONENT
+          value: "worker"
+        - name: WORKER_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: REDIS_URL
+        envFrom:
+        - configMapRef:
+            name: scraper-config
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: scraper-cache
+          mountPath: /app/cache
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: scraper-cache
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scraper-scheduler
+  namespace: openpolicy-scrapers
+  labels:
+    app: scraper-scheduler
+    component: scheduler
+spec:
+  replicas: 1  # Only one scheduler
+  selector:
+    matchLabels:
+      app: scraper-scheduler
+  template:
+    metadata:
+      labels:
+        app: scraper-scheduler
+    spec:
+      containers:
+      - name: scheduler
+        image: openpolicy/scraper-scheduler:latest
+        imagePullPolicy: Always
+        env:
+        - name: COMPONENT
+          value: "scheduler"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: REDIS_URL
+        - name: SCHEDULE_TIMEZONE
+          value: "America/Toronto"
+        envFrom:
+        - configMapRef:
+            name: scraper-config
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "250m"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: data-ingestion-pipeline
+  namespace: openpolicy-scrapers
+  labels:
+    app: data-ingestion
+    component: ingestion
+spec:
+  replicas: 3  # Multiple ingestion workers
+  selector:
+    matchLabels:
+      app: data-ingestion
+  template:
+    metadata:
+      labels:
+        app: data-ingestion
+    spec:
+      containers:
+      - name: ingestion
+        image: openpolicy/data-ingestion:latest
+        imagePullPolicy: Always
+        env:
+        - name: COMPONENT
+          value: "ingestion"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: scraper-secrets
+              key: REDIS_URL
+        envFrom:
+        - configMapRef:
+            name: scraper-config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scraper-orchestrator
+  namespace: openpolicy-scrapers
+spec:
+  selector:
+    app: scraper-orchestrator
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scraper-monitor
+  namespace: openpolicy-scrapers
+spec:
+  selector:
+    app: scraper-monitor
+  ports:
+  - protocol: TCP
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: scraper-workers-hpa
+  namespace: openpolicy-scrapers
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: scraper-workers
+  minReplicas: 5
+  maxReplicas: 50
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  - type: Pods
+    pods:
+      metric:
+        name: scraper_queue_size
+      target:
+        type: AverageValue
+        averageValue: "30"
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scraper-health-check
+  namespace: openpolicy-scrapers
+spec:
+  schedule: "0 * * * *"  # Every hour
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: health-check
+            image: openpolicy/scraper-health-check:latest
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: scraper-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: scraper-secrets
+                  key: REDIS_URL
+          restartPolicy: OnFailure
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scraper-discovery
+  namespace: openpolicy-scrapers
+spec:
+  schedule: "0 0 * * *"  # Daily at midnight
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: discovery
+            image: openpolicy/scraper-discovery:latest
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: scraper-secrets
+                  key: DATABASE_URL
+            volumeMounts:
+            - name: scraper-code
+              mountPath: /scrapers
+              readOnly: true
+          volumes:
+          - name: scraper-code
+            persistentVolumeClaim:
+              claimName: scraper-code-pvc
+          restartPolicy: OnFailure
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scraper-code-pvc
+  namespace: openpolicy-scrapers
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: scraper-metrics
+  namespace: openpolicy-scrapers
+spec:
+  selector:
+    matchLabels:
+      app: scraper-workers
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scraper-dashboards
+  namespace: openpolicy-scrapers
+data:
+  scrapers-overview.json: |
+    {
+      "dashboard": {
+        "title": "Scrapers Overview - 40by6",
+        "panels": [
+          {
+            "title": "Active Scrapers",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "scrapers_active_total"
+              }
+            ]
+          },
+          {
+            "title": "Success Rate (24h)",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "rate(scrapers_success_total[24h]) / rate(scrapers_total[24h])"
+              }
+            ]
+          },
+          {
+            "title": "Data Ingested (24h)",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(scrapers_records_ingested_total[24h])) by (jurisdiction)"
+              }
+            ]
+          },
+          {
+            "title": "Scraper Queue Size",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "scrapers_queue_size"
+              }
+            ]
+          }
+        ]
+      }
+    }
