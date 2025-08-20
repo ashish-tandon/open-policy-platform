@@ -38,6 +38,13 @@ Welcome to the Open Policy Platform documentation. This comprehensive guide will
 - [Environment Configuration](deployment/environment.md) - Environment setup
 - [Monitoring](deployment/monitoring.md) - System monitoring
 
+### **🤖 MCP Stack (Model Context Protocol)**
+- [Getting Started Checklist](../MCP_GETTING_STARTED_CHECKLIST.md) - **🚀 Quick start guide for the complete MCP stack**
+- [Complete Implementation Summary](mcp/MCP_COMPLETE_IMPLEMENTATION_SUMMARY.md) - Overview of all 40+ MCP modules
+- [Stack Implementation Guide](mcp/MCP_STACK_IMPLEMENTATION_COMPREHENSIVE.md) - Comprehensive implementation details
+- [Deployment Guide](../MCP_DEPLOYMENT_GUIDE.md) - Detailed deployment instructions
+- [Scraper Management System](mcp/SCRAPER_MANAGEMENT_SYSTEM.md) - Core scraper functionality
+
 ### **👨‍💻 Development**
 - [Development Setup](development/setup.md) - Local development environment
 - [Code Guidelines](development/guidelines.md) - Coding standards and practices
