@@ -1,0 +1,126 @@
+apiVersion: 2023-05-01
+location: eastus
+name: mcp-stack-environment
+type: Microsoft.App/managedEnvironments
+properties:
+  appLogsConfiguration:
+    destination: log-analytics
+    logAnalyticsConfiguration:
+      customerId: ""
+      sharedKey: ""
+  workloadProfiles:
+    - name: Consumption
+      workloadProfileType: Consumption
+---
+apiVersion: 2023-05-01
+location: eastus
+name: mcp-backend-api
+type: Microsoft.App/containerApps
+properties:
+  managedEnvironmentId: /subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.App/managedEnvironments/mcp-stack-environment
+  configuration:
+    ingress:
+      external: true
+      targetPort: 8000
+      allowInsecure: false
+      traffic:
+        - weight: 100
+          latestRevision: true
+    secrets:
+      - name: postgres-connection-string
+        value: "postgresql://mcpadmin:{password}@{server}.postgres.database.azure.com:5432/mcp_db"
+      - name: redis-connection-string
+        value: "redis://:{key}@{redis-host}:6380"
+      - name: secret-key
+        value: "{generated-secret-key}"
+    registries:
+      - server: "{acr-name}.azurecr.io"
+        username: "{acr-username}"
+        passwordSecretRef: acr-password
+  template:
+    containers:
+      - name: mcp-backend
+        image: "{acr-name}.azurecr.io/mcp-backend:latest"
+        env:
+          - name: DATABASE_URL
+            secretRef: postgres-connection-string
+          - name: REDIS_URL
+            secretRef: redis-connection-string
+          - name: SECRET_KEY
+            secretRef: secret-key
+          - name: API_HOST
+            value: "0.0.0.0"
+          - name: API_PORT
+            value: "8000"
+          - name: ENVIRONMENT
+            value: "production"
+        resources:
+          cpu: 1.0
+          memory: 2Gi
+        probes:
+          - type: Readiness
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          - type: Liveness
+            httpGet:
+              path: /api/v1/health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+    scale:
+      minReplicas: 1
+      maxReplicas: 10
+      rules:
+        - name: http-rule
+          http:
+            metadata:
+              concurrentRequests: "100"
+---
+apiVersion: 2023-05-01
+location: eastus
+name: mcp-web-frontend
+type: Microsoft.App/containerApps
+properties:
+  managedEnvironmentId: /subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.App/managedEnvironments/mcp-stack-environment
+  configuration:
+    ingress:
+      external: true
+      targetPort: 5173
+      allowInsecure: false
+      traffic:
+        - weight: 100
+          latestRevision: true
+    registries:
+      - server: "{acr-name}.azurecr.io"
+        username: "{acr-username}"
+        passwordSecretRef: acr-password
+  template:
+    containers:
+      - name: mcp-web
+        image: "{acr-name}.azurecr.io/mcp-web:latest"
+        env:
+          - name: VITE_API_URL
+            value: "https://mcp-backend-api.{environment-domain}"
+          - name: NODE_ENV
+            value: "production"
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        probes:
+          - type: Readiness
+            httpGet:
+              path: /
+              port: 5173
+            initialDelaySeconds: 30
+            periodSeconds: 10
+    scale:
+      minReplicas: 1
+      maxReplicas: 5
+      rules:
+        - name: http-rule
+          http:
+            metadata:
+              concurrentRequests: "50"
