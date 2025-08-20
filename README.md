@@ -25,10 +25,11 @@ chmod +x scripts/*.sh
 
 ## 📚 **Documentation & Resources**
 
-- **🚀 Getting Started**: [MCP_GETTING_STARTED_CHECKLIST.md](MCP_GETTING_STARTED_CHECKLIST.md) - **Start here!**
-- **📖 Complete Guide**: [MCP_DEPLOYMENT_GUIDE.md](MCP_DEPLOYMENT_GUIDE.md)
-- **🏗️ Architecture**: [MCP_ARCHITECTURE_DIAGRAM.md](MCP_ARCHITECTURE_DIAGRAM.md)
-- **📋 Implementation**: [docs/MCP_STACK_IMPLEMENTATION_COMPREHENSIVE.md](docs/MCP_STACK_IMPLEMENTATION_COMPREHENSIVE.md)
+- **🎯 Complete Deployment Guide**: [COMPLETE_MCP_DEPLOYMENT_CHECKLIST.md](COMPLETE_MCP_DEPLOYMENT_CHECKLIST.md) - **🚀 ULTIMATE GUIDE - Start here!**
+- **📋 Getting Started**: [MCP_GETTING_STARTED_CHECKLIST.md](MCP_GETTING_STARTED_CHECKLIST.md) - Detailed step-by-step
+- **📖 Complete Guide**: [MCP_DEPLOYMENT_GUIDE.md](MCP_DEPLOYMENT_GUIDE.md) - Comprehensive deployment
+- **🏗️ Architecture**: [MCP_ARCHITECTURE_DIAGRAM.md](MCP_ARCHITECTURE_DIAGRAM.md) - System architecture
+- **📋 Implementation**: [docs/MCP_STACK_IMPLEMENTATION_COMPREHENSIVE.md](docs/MCP_STACK_IMPLEMENTATION_COMPREHENSIVE.md) - Technical details
 
 ## 🤖 **What You Get**
 
