@@ -1,198 +1,181 @@
-# 📱 Open Policy Platform - Mobile Applications
+# MCP Stack Mobile Applications - 40by6
 
-This directory contains the mobile applications for the Open Policy Platform, preserved for future development.
+Cross-platform mobile applications for iOS and Android providing full access to the MCP Stack.
 
-## 📱 **Mobile Applications**
+## Architecture
 
-### **open-policy-main/**
-- **Type**: React Native (Expo)
-- **Purpose**: Main mobile application
-- **Status**: Preserved for future development
-- **Technology**: React Native, Expo, TypeScript
+We use React Native with Expo for cross-platform development, providing:
+- Single codebase for iOS and Android
+- Native performance and UI
+- Access to device features
+- Over-the-air updates
+- Push notifications
 
-### **open-policy-app/**
-- **Type**: React Native Components
-- **Purpose**: Reusable mobile components
-- **Status**: Preserved for future development
-- **Technology**: React Native, TypeScript
+## Features
 
-### **admin-open-policy/**
-- **Type**: React Native Admin Interface
-- **Purpose**: Mobile admin interface
-- **Status**: Preserved for future development
-- **Technology**: React Native, TypeScript
+### Core Features
+- **Authentication**: Biometric login, OAuth2, API keys
+- **Dashboard**: Real-time metrics and monitoring
+- **Scraper Management**: Monitor and control scrapers
+- **Data Visualization**: Interactive charts and graphs
+- **Alerts**: Push notifications for critical events
+- **Offline Mode**: Local caching and sync
+- **Security**: End-to-end encryption, secure storage
 
-### **open-policy-web/**
-- **Type**: React Web Application
-- **Purpose**: Web interface (moved from apps/)
-- **Status**: Integrated into main web application
-- **Technology**: React, TypeScript, Vite
+### Advanced Features
+- **AR Visualization**: Augmented reality data views
+- **Voice Control**: Voice commands and queries
+- **Gesture Controls**: Swipe actions and shortcuts
+- **Widgets**: Home screen widgets for quick access
+- **Apple Watch / Wear OS**: Companion apps
+- **Dark Mode**: Full theme support
+- **Accessibility**: VoiceOver/TalkBack support
 
-## 🚀 **Future Development**
+## Project Structure
 
-### **Planned Features**
-- **Cross-platform mobile app** for policy browsing
-- **Offline capability** for policy data
-- **Push notifications** for policy updates
-- **Mobile-optimized** admin interface
-- **Native features** integration
+```
+mobile/
+├── app/                    # Expo app directory
+│   ├── (tabs)/            # Tab navigation screens
+│   ├── (auth)/            # Authentication screens
+│   ├── components/        # Reusable components
+│   ├── hooks/            # Custom React hooks
+│   ├── services/         # API and service layers
+│   ├── stores/           # State management
+│   ├── utils/            # Utility functions
+│   └── constants/        # App constants
+├── assets/               # Images, fonts, etc.
+├── ios/                  # iOS-specific code
+├── android/              # Android-specific code
+└── web/                  # Web build (optional)
+```
 
-### **Development Timeline**
-- **Phase 1**: Basic mobile app structure
-- **Phase 2**: Policy browsing interface
-- **Phase 3**: Offline functionality
-- **Phase 4**: Advanced features
+## Getting Started
 
-## 🔧 **Technology Stack**
-
-### **React Native**
-- **Framework**: React Native with Expo
-- **Language**: TypeScript
-- **Styling**: NativeWind (Tailwind CSS for React Native)
-- **Navigation**: React Navigation
-- **State Management**: React Context + Hooks
-
-### **Development Tools**
-- **Expo CLI**: Development and building
-- **Metro**: JavaScript bundler
-- **TypeScript**: Type safety
-- **ESLint**: Code quality
-
-## 📋 **Setup Instructions**
-
-### **Prerequisites**
-- Node.js 18+
+### Prerequisites
+- Node.js 16+
 - Expo CLI
-- iOS Simulator (macOS) or Android Emulator
+- iOS Simulator (Mac only) or Android Studio
+- Physical device for testing (recommended)
 
-### **Installation**
+### Installation
+
 ```bash
-# Install Expo CLI
-npm install -g @expo/cli
-
-# Navigate to mobile app
-cd mobile/open-policy-main
-
-# Install dependencies
+cd mobile
 npm install
-
-# Start development server
-npx expo start
 ```
 
-### **Development**
+### Development
+
 ```bash
-# Start with iOS simulator
-npx expo start --ios
+# Start Expo development server
+npm start
 
-# Start with Android emulator
-npx expo start --android
+# Run on iOS
+npm run ios
 
-# Start with web browser
-npx expo start --web
+# Run on Android
+npm run android
+
+# Run on web (if enabled)
+npm run web
 ```
 
-## 📱 **App Structure**
+### Building
 
-### **open-policy-main/**
-```
-src/
-├── components/          # Reusable components
-├── screens/            # Screen components
-├── navigation/         # Navigation configuration
-├── services/           # API services
-├── hooks/              # Custom hooks
-├── utils/              # Utility functions
-└── types/              # TypeScript types
-```
+```bash
+# Build for iOS
+eas build --platform ios
 
-### **open-policy-app/**
-```
-src/
-├── components/         # Shared components
-├── hooks/              # Custom hooks
-├── utils/              # Utility functions
-└── types/              # TypeScript types
+# Build for Android
+eas build --platform android
+
+# Build for both
+eas build --platform all
 ```
 
-## 🔗 **Integration**
+## Configuration
 
-### **API Integration**
-- **Backend API**: Connects to unified backend
-- **Authentication**: JWT-based authentication
-- **Real-time updates**: WebSocket integration
-- **Offline sync**: Local storage + sync
+### Environment Variables
 
-### **Web Integration**
-- **Shared components** with web application
-- **Consistent design** language
-- **Unified API** access
-- **Cross-platform** functionality
+Create `.env` file:
+```
+API_URL=https://api.openpolicy.me
+SENTRY_DSN=your-sentry-dsn
+ONESIGNAL_APP_ID=your-onesignal-id
+```
 
-## 📊 **Features**
+### App Configuration
 
-### **Current Features**
-- **Basic structure** preserved
-- **Component library** ready
-- **Navigation setup** complete
-- **TypeScript** configuration
+Edit `app.json`:
+```json
+{
+  "expo": {
+    "name": "MCP Stack",
+    "slug": "mcp-stack",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a1929"
+    }
+  }
+}
+```
 
-### **Planned Features**
-- **Policy browsing** interface
-- **Search functionality** with filters
-- **Favorites and bookmarks**
-- **Offline reading** capability
-- **Push notifications**
-- **Admin interface** for mobile
+## Testing
 
-## 🛠️ **Development Guidelines**
+```bash
+# Run unit tests
+npm test
 
-### **Code Standards**
-- **TypeScript**: Strict type checking
-- **ESLint**: Code quality enforcement
-- **Prettier**: Code formatting
-- **Testing**: Unit and integration tests
+# Run E2E tests
+npm run test:e2e
 
-### **Component Guidelines**
-- **Reusable components** in open-policy-app
-- **Screen-specific components** in open-policy-main
-- **Consistent styling** with NativeWind
-- **Accessibility** compliance
+# Run on device
+expo start --tunnel
+```
 
-## 📈 **Roadmap**
+## Deployment
 
-### **Q1 2024**
-- [ ] Basic mobile app structure
-- [ ] Policy browsing interface
-- [ ] Authentication integration
+### App Store (iOS)
 
-### **Q2 2024**
-- [ ] Offline functionality
-- [ ] Search and filtering
-- [ ] Push notifications
+1. Configure certificates in Apple Developer Console
+2. Build with EAS: `eas build --platform ios`
+3. Submit with EAS: `eas submit --platform ios`
 
-### **Q3 2024**
-- [ ] Advanced features
-- [ ] Performance optimization
-- [ ] Production deployment
+### Google Play (Android)
 
-## 🔒 **Security**
+1. Configure signing in Google Play Console
+2. Build with EAS: `eas build --platform android`
+3. Submit with EAS: `eas submit --platform android`
 
-### **Mobile Security**
-- **Secure storage** for sensitive data
-- **Certificate pinning** for API calls
-- **Biometric authentication** support
-- **Data encryption** for offline storage
+## Security
 
-## 📞 **Support**
+- All API communications use HTTPS
+- Sensitive data stored in secure storage (Keychain/Keystore)
+- Biometric authentication for app access
+- Certificate pinning for API requests
+- Obfuscation and minification in production builds
 
-For mobile development questions:
-1. Check the [Development Guide](../docs/development/setup.md)
-2. Review [API Documentation](../docs/api/overview.md)
-3. Consult React Native and Expo documentation
+## Performance
 
----
+- Lazy loading of screens and components
+- Image optimization and caching
+- Background task management
+- Memory leak prevention
+- Crash reporting with Sentry
 
-**Last Updated**: August 8, 2024
-**Version**: 1.0.0
-**Status**: Preserved for Future Development
+## Accessibility
+
+- Full VoiceOver (iOS) and TalkBack (Android) support
+- Dynamic font sizing
+- High contrast mode
+- Reduced motion options
+- Screen reader optimized navigation
+
+## License
+
+MIT License - see LICENSE file for details.
